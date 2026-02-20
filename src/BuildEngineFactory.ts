@@ -125,6 +125,16 @@ export class BuildEngineFactory {
       crudOperations.operations.addNamedExpression(entry.name, entry.expression, entry.scope, entry.options)
     })
 
+    if (config.compatibilityMode === 'googleSheets') {
+      const userDefinedNames = new Set(inputNamedExpressions.map(e => e.name.toUpperCase()))
+      if (!userDefinedNames.has('TRUE')) {
+        crudOperations.operations.addNamedExpression('TRUE', '=TRUE()')
+      }
+      if (!userDefinedNames.has('FALSE')) {
+        crudOperations.operations.addNamedExpression('FALSE', '=FALSE()')
+      }
+    }
+
     const evaluator = new Evaluator(config, stats, interpreter, lazilyTransformingAstService, dependencyGraph, columnSearch)
     evaluator.run()
 

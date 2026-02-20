@@ -24,6 +24,12 @@ import {Maybe} from './Maybe'
 import {ParserConfig} from './parser/ParserConfig'
 import {ConfigParams, ConfigParamsList} from './ConfigParams'
 
+const googleSheetsDefaults: Partial<ConfigParams> = {
+  dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
+  localeLang: 'en-US',
+  currencySymbol: ['$', 'USD'],
+}
+
 const privatePool: WeakMap<Config, { licenseKeyValidityState: LicenseKeyValidityState }> = new WeakMap()
 
 export class Config implements ConfigParams, ParserConfig {
@@ -35,6 +41,7 @@ export class Config implements ConfigParams, ParserConfig {
     caseFirst: 'lower',
     context: undefined,
     chooseAddressMappingPolicy: new AlwaysDense(),
+    compatibilityMode: 'default' as const,
     dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
     decimalSeparator: '.',
     evaluateNullToZero: false,
@@ -75,6 +82,8 @@ export class Config implements ConfigParams, ParserConfig {
   public readonly caseSensitive: boolean
   /** @inheritDoc */
   public readonly chooseAddressMappingPolicy: ChooseAddressMapping
+  /** @inheritDoc */
+  public readonly compatibilityMode: 'default' | 'googleSheets'
   /** @inheritDoc */
   public readonly accentSensitive: boolean
   /** @inheritDoc */
@@ -167,6 +176,7 @@ export class Config implements ConfigParams, ParserConfig {
       caseSensitive,
       caseFirst,
       chooseAddressMappingPolicy,
+      compatibilityMode,
       context,
       currencySymbol,
       dateFormats,
@@ -207,6 +217,7 @@ export class Config implements ConfigParams, ParserConfig {
       Config.warnDeprecatedOptions(options)
     }
 
+    this.compatibilityMode = configValueFromParam(compatibilityMode, ['default', 'googleSheets'], 'compatibilityMode')
     this.useArrayArithmetic = configValueFromParam(useArrayArithmetic, 'boolean', 'useArrayArithmetic')
     this.accentSensitive = configValueFromParam(accentSensitive, 'boolean', 'accentSensitive')
     this.caseSensitive = configValueFromParam(caseSensitive, 'boolean', 'caseSensitive')
@@ -254,6 +265,18 @@ export class Config implements ConfigParams, ParserConfig {
     this.currencySymbol = this.setupCurrencySymbol(currencySymbol)
     validateNumberToBeAtLeast(this.maxColumns, 'maxColumns', 1)
     this.context = context
+
+    if (this.compatibilityMode === 'googleSheets') {
+      if (dateFormats === undefined) {
+        this.dateFormats = [...googleSheetsDefaults.dateFormats!]
+      }
+      if (localeLang === undefined) {
+        this.localeLang = googleSheetsDefaults.localeLang!
+      }
+      if (currencySymbol === undefined) {
+        this.currencySymbol = [...googleSheetsDefaults.currencySymbol!]
+      }
+    }
 
     privatePool.set(this, {
       licenseKeyValidityState: checkLicenseKeyValidity(this.licenseKey)
