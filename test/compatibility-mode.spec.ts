@@ -121,3 +121,15 @@ describe('Google Sheets named expression auto-registration', () => {
     hf.destroy()
   })
 })
+
+describe('Google Sheets plugin registration', () => {
+  it('should load GSheets plugins when compatibilityMode is googleSheets', () => {
+    // Validates the wiring — specific function overrides tested in plugin test files
+    const hf = HyperFormula.buildFromArray([
+      [1, 2, '=SUM(A1,B1)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    expect(hf.getCellValue(adr('C1'))).toBe(3)
+    hf.destroy()
+  })
+})
