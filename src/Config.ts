@@ -24,7 +24,9 @@ import {Maybe} from './Maybe'
 import {ParserConfig} from './parser/ParserConfig'
 import {ConfigParams, ConfigParamsList} from './ConfigParams'
 
-const googleSheetsDefaults: Partial<ConfigParams> = {
+type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol'>
+
+const googleSheetsDefaults: GoogleSheetsDefaults = {
   dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
   localeLang: 'en-US',
   currencySymbol: ['$', 'USD'],
@@ -268,13 +270,13 @@ export class Config implements ConfigParams, ParserConfig {
 
     if (this.compatibilityMode === 'googleSheets') {
       if (dateFormats === undefined) {
-        this.dateFormats = [...googleSheetsDefaults.dateFormats!]
+        this.dateFormats = [...googleSheetsDefaults.dateFormats]
       }
       if (localeLang === undefined) {
-        this.localeLang = googleSheetsDefaults.localeLang!
+        this.localeLang = googleSheetsDefaults.localeLang
       }
       if (currencySymbol === undefined) {
-        this.currencySymbol = [...googleSheetsDefaults.currencySymbol!]
+        this.currencySymbol = [...googleSheetsDefaults.currencySymbol]
       }
     }
 

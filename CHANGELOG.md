@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed Google Sheets compatibility mode initialization to auto-register global `TRUE`/`FALSE` named expressions even when sheet-scoped named expressions with the same names are provided.
 - Fixed `updateConfig({compatibilityMode: 'default'})` to restore default `dateFormats`, `localeLang`, and `currencySymbol` when switching from Google Sheets mode without explicit overrides.
 - Fixed Google Sheets compatibility mode to auto-register internal `TRUE`/`FALSE` named expressions using the configured language translations instead of hardcoded English formulas.
-
+- Removed duplicate `updateConfig` compatibility mode transition tests from `test/compatibility-mode.spec.ts` to keep coverage non-redundant and easier to maintain.
 ## [3.2.0] - 2026-02-19
 
 ### Added
@@ -367,7 +367,7 @@ For more information on this release, see:
 - **Breaking change**: Changed config options [#747](https://github.com/handsontable/hyperformula/issues/747):
 
 | before                | after                |
-|-----------------------|----------------------|
+| --------------------- | -------------------- |
 | matrixColumnSeparator | arrayColumnSeparator |
 | matrixRowSeparator    | arrayRowSeparator    |
 
@@ -376,14 +376,14 @@ For more information on this release, see:
 - **Breaking change**: Changed API methods [#747](https://github.com/handsontable/hyperformula/issues/747):
 
 | before             | after             |
-|--------------------|-------------------|
+| ------------------ | ----------------- |
 | matrixMapping      | arrrayMapping     |
 | isCellPartOfMatrix | isCellPartOfArray |
 
 - **Breaking change**: Changed Exceptions [#747](https://github.com/handsontable/hyperformula/issues/747):
 
 | before                       | after                       |
-|------------------------------|-----------------------------|
+| ---------------------------- | --------------------------- |
 | SourceLocationHasMatrixError | SourceLocationHasArrayError |
 | TargetLocationHasMatrixError | TargetLocationHasArrayError |
 

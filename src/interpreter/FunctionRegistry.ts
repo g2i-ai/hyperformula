@@ -17,6 +17,7 @@ import {
   PluginFunctionType
 } from './plugin/FunctionPlugin'
 import {VersionPlugin} from './plugin/VersionPlugin'
+import {googleSheetsPlugins} from './plugin/googleSheets'
 
 export type FunctionTranslationsPackage = Record<string, TranslationSet>
 
@@ -64,6 +65,12 @@ export class FunctionRegistry {
 
     for (const [functionId, plugin] of FunctionRegistry.protectedFunctions()) {
       FunctionRegistry.loadFunctionUnprotected(plugin, functionId, this.instancePlugins)
+    }
+
+    if (config.compatibilityMode === 'googleSheets') {
+      for (const gsPlugin of googleSheetsPlugins) {
+        FunctionRegistry.loadPluginFunctions(gsPlugin, this.instancePlugins)
+      }
     }
 
     for (const [functionId, plugin] of this.instancePlugins.entries()) {
