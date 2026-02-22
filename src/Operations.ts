@@ -417,8 +417,8 @@ export class Operations {
     return oldContent
   }
 
-  public addNamedExpression(expressionName: string, expression: RawCellContent, sheetId?: number, options?: NamedExpressionOptions) {
-    const namedExpression = this.namedExpressions.addNamedExpression(expressionName, sheetId, options)
+  public addNamedExpression(expressionName: string, expression: RawCellContent, sheetId?: number, options?: NamedExpressionOptions, isInternal: boolean = false) {
+    const namedExpression = this.namedExpressions.addNamedExpression(expressionName, sheetId, options, isInternal)
     this.storeNamedExpressionInCell(namedExpression.address, expression)
     this.adjustNamedExpressionEdges(namedExpression, expressionName, sheetId)
   }
@@ -439,6 +439,7 @@ export class Operations {
     const oldNamedExpression = namedExpression.copy()
 
     namedExpression.options = options
+    namedExpression.isInternal = false
     const content = this.getClipboardCell(namedExpression.address)
     this.storeNamedExpressionInCell(namedExpression.address, newExpression)
     return [oldNamedExpression, content]

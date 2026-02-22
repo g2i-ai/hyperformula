@@ -4576,8 +4576,11 @@ export class HyperFormula implements TypedEmitter {
     const configNewLanguage = this._config.mergeConfig({language: newParams.language})
     const serializedSheets = this._serialization.withNewConfig(configNewLanguage, this._namedExpressions).getAllSheetsSerialized()
     const serializedNamedExpressions = this._serialization.getAllNamedExpressionsSerialized()
+    const filteredNamedExpressions = this.shouldDropInternalNamedExpressions(newParams)
+      ? serializedNamedExpressions.filter((entry: SerializedNamedExpression) => !entry.isInternal)
+      : serializedNamedExpressions
 
-    const newEngine = BuildEngineFactory.rebuildWithConfig(newConfig, serializedSheets, serializedNamedExpressions, this._stats)
+    const newEngine = BuildEngineFactory.rebuildWithConfig(newConfig, serializedSheets, filteredNamedExpressions, this._stats)
 
     this._config = newEngine.config
     this._stats = newEngine.stats
@@ -4593,6 +4596,10 @@ export class HyperFormula implements TypedEmitter {
     this._namedExpressions = newEngine.namedExpressions
     this._serialization = newEngine.serialization
     this._functionRegistry = newEngine.functionRegistry
+  }
+
+  private shouldDropInternalNamedExpressions(newParams: Partial<ConfigParams>): boolean {
+    return this._config.compatibilityMode === 'googleSheets' && newParams.compatibilityMode === 'default'
   }
 
   /**

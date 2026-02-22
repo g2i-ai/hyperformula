@@ -54,6 +54,19 @@ export interface ConfigParams {
    */
   chooseAddressMappingPolicy: ChooseAddressMapping,
   /**
+   * Sets the compatibility mode for the engine.
+   *
+   * When set to `'googleSheets'`, applies Google Sheets-compatible defaults
+   * for date formats, locale, currency, and function behavior.
+   *
+   * User-provided config values always override the preset defaults.
+   *
+   * For more information, see the [Compatibility with Google Sheets guide](/guide/compatibility-with-google-sheets.md).
+   * @default 'default'
+   * @category Engine
+   */
+  compatibilityMode: 'default' | 'googleSheets',
+  /**
    * A generic parameter that can be used to pass data to custom functions.
    *
    * For more information, see the [Custom functions guide](/guide/custom-functions.md).

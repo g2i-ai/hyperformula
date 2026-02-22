@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Google Sheets compatibility mode initialization to auto-register global `TRUE`/`FALSE` named expressions even when sheet-scoped named expressions with the same names are provided.
+- Fixed `updateConfig({compatibilityMode: 'default'})` to restore default `dateFormats`, `localeLang`, and `currencySymbol` when switching from Google Sheets mode without explicit overrides.
+- Fixed Google Sheets compatibility mode to auto-register internal `TRUE`/`FALSE` named expressions using the configured language translations instead of hardcoded English formulas.
+
 ## [3.2.0] - 2026-02-19
 
 ### Added
