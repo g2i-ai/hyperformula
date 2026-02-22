@@ -328,7 +328,10 @@ export class Config implements ConfigParams, ParserConfig {
     const mergedConfig: Partial<ConfigParams> = Object.assign({}, this.getConfig(), init)
     let configForMerge = mergedConfig
 
-    if (init.compatibilityMode === 'googleSheets' && this.compatibilityMode !== 'googleSheets') {
+    const switchingToGoogleSheetsMode = init.compatibilityMode === 'googleSheets' && this.compatibilityMode !== 'googleSheets'
+    const switchingToDefaultMode = init.compatibilityMode === 'default' && this.compatibilityMode === 'googleSheets'
+
+    if (switchingToGoogleSheetsMode || switchingToDefaultMode) {
       const {
         dateFormats: mergedDateFormats,
         localeLang: mergedLocaleLang,
