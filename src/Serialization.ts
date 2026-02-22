@@ -18,6 +18,7 @@ export interface SerializedNamedExpression {
   expression: RawCellContent,
   scope?: number,
   options?: NamedExpressionOptions,
+  isInternal?: boolean,
 }
 
 export class Serialization {
@@ -150,7 +151,8 @@ export class Serialization {
         name: entry.expression.displayName,
         expression: this.getCellSerialized(entry.expression.address),
         scope: entry.scope !== undefined ? idMap[entry.scope] : undefined,
-        options: entry.expression.options
+        options: entry.expression.options,
+        isInternal: entry.expression.isInternal
       }
     })
   }

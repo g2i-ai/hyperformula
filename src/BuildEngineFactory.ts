@@ -122,7 +122,7 @@ export class BuildEngineFactory {
 
     inputNamedExpressions.forEach((entry: SerializedNamedExpression) => {
       crudOperations.ensureItIsPossibleToAddNamedExpression(entry.name, entry.expression, entry.scope)
-      crudOperations.operations.addNamedExpression(entry.name, entry.expression, entry.scope, entry.options)
+      crudOperations.operations.addNamedExpression(entry.name, entry.expression, entry.scope, entry.options, entry.isInternal)
     })
 
     if (config.compatibilityMode === 'googleSheets') {
@@ -132,10 +132,10 @@ export class BuildEngineFactory {
           .map((entry: SerializedNamedExpression) => entry.name.toUpperCase())
       )
       if (!globallyDefinedNames.has('TRUE')) {
-        crudOperations.operations.addNamedExpression('TRUE', '=TRUE()')
+        crudOperations.operations.addNamedExpression('TRUE', '=TRUE()', undefined, undefined, true)
       }
       if (!globallyDefinedNames.has('FALSE')) {
-        crudOperations.operations.addNamedExpression('FALSE', '=FALSE()')
+        crudOperations.operations.addNamedExpression('FALSE', '=FALSE()', undefined, undefined, true)
       }
     }
 

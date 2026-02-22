@@ -26,7 +26,8 @@ export class InternalNamedExpression {
     public displayName: string,
     public readonly address: SimpleCellAddress,
     public added: boolean,
-    public options?: NamedExpressionOptions
+    public options?: NamedExpressionOptions,
+    public isInternal: boolean = false
   ) {
   }
 
@@ -35,7 +36,7 @@ export class InternalNamedExpression {
   }
 
   public copy(): InternalNamedExpression {
-    return new InternalNamedExpression(this.displayName, this.address, this.added, this.options)
+    return new InternalNamedExpression(this.displayName, this.address, this.added, this.options, this.isInternal)
   }
 }
 
@@ -186,15 +187,16 @@ export class NamedExpressions {
     return namedExpRegexp.test(expressionName)
   }
 
-  public addNamedExpression(expressionName: string, sheetId?: number, options?: NamedExpressionOptions): InternalNamedExpression {
+  public addNamedExpression(expressionName: string, sheetId?: number, options?: NamedExpressionOptions, isInternal: boolean = false): InternalNamedExpression {
     const store = sheetId === undefined ? this.workbookStore : this.worksheetStoreOrCreate(sheetId)
     let namedExpression = store.get(expressionName)
     if (namedExpression !== undefined) {
       namedExpression.added = true
       namedExpression.displayName = expressionName
       namedExpression.options = options
+      namedExpression.isInternal = isInternal
     } else {
-      namedExpression = new InternalNamedExpression(expressionName, this.nextAddress(), true, options)
+      namedExpression = new InternalNamedExpression(expressionName, this.nextAddress(), true, options, isInternal)
       store.add(namedExpression)
     }
     this.addressCache.set(namedExpression.address.row, namedExpression)

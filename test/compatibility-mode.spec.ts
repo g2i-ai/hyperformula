@@ -156,4 +156,37 @@ describe('Google Sheets named expression auto-registration', () => {
     expect(hf.getCellValue(adr('A1'))).toBe(99)
     hf.destroy()
   })
+
+  it('should not keep auto-registered TRUE/FALSE after switching from googleSheets to default', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=TRUE', '=FALSE'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
+    expect(hf.getCellValue(adr('B1'))).toBe(false)
+
+    hf.updateConfig({compatibilityMode: 'default'})
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(Object)
+    expect(hf.getCellValue(adr('B1'))).toBeInstanceOf(Object)
+    hf.destroy()
+  })
+
+  it('should keep user-defined TRUE/FALSE after switching from googleSheets to default', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=TRUE', '=FALSE'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'}, [
+      {name: 'TRUE', expression: '=42'},
+      {name: 'FALSE', expression: '=99'},
+    ])
+
+    expect(hf.getCellValue(adr('A1'))).toBe(42)
+    expect(hf.getCellValue(adr('B1'))).toBe(99)
+
+    hf.updateConfig({compatibilityMode: 'default'})
+
+    expect(hf.getCellValue(adr('A1'))).toBe(42)
+    expect(hf.getCellValue(adr('B1'))).toBe(99)
+    hf.destroy()
+  })
 })
