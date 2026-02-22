@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Handsoncode. All rights reserved.
  */
 
-import {FunctionPluginDefinition} from '../FunctionPlugin'
+import type { FunctionPluginDefinition } from '../FunctionPlugin'
 
 /**
  * Google Sheets override plugins.
@@ -13,5 +13,4 @@ import {FunctionPluginDefinition} from '../FunctionPlugin'
  * on top of the default plugins in FunctionRegistry, silently replacing
  * the overridden function implementations via Map.set.
  */
-export const googleSheetsPlugins: FunctionPluginDefinition[] = [
-]
+export const googleSheetsPlugins: FunctionPluginDefinition[] = []
