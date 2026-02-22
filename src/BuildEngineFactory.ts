@@ -126,11 +126,15 @@ export class BuildEngineFactory {
     })
 
     if (config.compatibilityMode === 'googleSheets') {
-      const userDefinedNames = new Set(inputNamedExpressions.map(e => e.name.toUpperCase()))
-      if (!userDefinedNames.has('TRUE')) {
+      const globallyDefinedNames = new Set(
+        inputNamedExpressions
+          .filter((entry: SerializedNamedExpression) => entry.scope === undefined)
+          .map((entry: SerializedNamedExpression) => entry.name.toUpperCase())
+      )
+      if (!globallyDefinedNames.has('TRUE')) {
         crudOperations.operations.addNamedExpression('TRUE', '=TRUE()')
       }
-      if (!userDefinedNames.has('FALSE')) {
+      if (!globallyDefinedNames.has('FALSE')) {
         crudOperations.operations.addNamedExpression('FALSE', '=FALSE()')
       }
     }

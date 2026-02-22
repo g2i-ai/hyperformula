@@ -111,6 +111,18 @@ describe('Google Sheets named expression auto-registration', () => {
     hf.destroy()
   })
 
+  it('should still register global TRUE when only a sheet-scoped TRUE exists', () => {
+    const hf = HyperFormula.buildFromSheets({
+      Sheet1: [['=TRUE']],
+      Sheet2: [['=TRUE']],
+    }, {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'},
+    [{name: 'TRUE', expression: '=42', scope: 0}])
+
+    expect(hf.getCellValue(adr('A1', 0))).toBe(42)
+    expect(hf.getCellValue(adr('A1', 1))).toBe(true)
+    hf.destroy()
+  })
+
   it('should not overwrite user-defined FALSE named expression', () => {
     const hf = HyperFormula.buildFromArray([
       ['=FALSE'],

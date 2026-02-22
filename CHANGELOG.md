@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Google Sheets compatibility mode initialization to auto-register global `TRUE`/`FALSE` named expressions even when sheet-scoped named expressions with the same names are provided.
+
 ## [3.2.0] - 2026-02-19
 
 ### Added
