@@ -58,6 +58,18 @@ describe('Google Sheets config preset', () => {
     expect(config.localeLang).toBe('en')
     expect(config.currencySymbol).toEqual(['$'])
   })
+
+  it('should apply GSheets defaults after switching mode with updateConfig', () => {
+    const hf = HyperFormula.buildEmpty({licenseKey: 'gpl-v3'})
+
+    hf.updateConfig({compatibilityMode: 'googleSheets'})
+
+    const updatedConfig = hf.getConfig()
+    expect(updatedConfig.dateFormats).toEqual(['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'])
+    expect(updatedConfig.localeLang).toBe('en-US')
+    expect(updatedConfig.currencySymbol).toEqual(['$', 'USD'])
+    hf.destroy()
+  })
 })
 
 describe('Google Sheets named expression auto-registration', () => {

@@ -325,11 +325,28 @@ export class Config implements ConfigParams, ParserConfig {
   }
 
   public mergeConfig(init: Partial<ConfigParams>): Config {
-    const mergedConfig: ConfigParams = Object.assign({}, this.getConfig(), init)
+    const mergedConfig: Partial<ConfigParams> = Object.assign({}, this.getConfig(), init)
+    let configForMerge = mergedConfig
+
+    if (init.compatibilityMode === 'googleSheets' && this.compatibilityMode !== 'googleSheets') {
+      const {
+        dateFormats: mergedDateFormats,
+        localeLang: mergedLocaleLang,
+        currencySymbol: mergedCurrencySymbol,
+        ...remainingConfig
+      } = mergedConfig
+
+      configForMerge = {
+        ...remainingConfig,
+        ...(init.dateFormats !== undefined ? {dateFormats: mergedDateFormats} : {}),
+        ...(init.localeLang !== undefined ? {localeLang: mergedLocaleLang} : {}),
+        ...(init.currencySymbol !== undefined ? {currencySymbol: mergedCurrencySymbol} : {}),
+      }
+    }
 
     Config.warnDeprecatedOptions(init)
 
-    return new Config(mergedConfig, false)
+    return new Config(configForMerge, false)
   }
 
   private static warnDeprecatedOptions(options: Partial<ConfigParams>) {
