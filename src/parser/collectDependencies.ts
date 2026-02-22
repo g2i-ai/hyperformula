@@ -83,6 +83,14 @@ const collectDependenciesFn = (ast: Ast, functionRegistry: FunctionRegistry, dep
       )
       return
     }
+    case AstNodeType.ARRAY: {
+      ast.args.forEach((row: Ast[]) =>
+        row.forEach((cellAst: Ast) =>
+          collectDependenciesFn(cellAst, functionRegistry, dependenciesSet, true)
+        )
+      )
+      return
+    }
   }
 }
 
