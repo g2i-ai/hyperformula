@@ -24,7 +24,9 @@ import {Maybe} from './Maybe'
 import {ParserConfig} from './parser/ParserConfig'
 import {ConfigParams, ConfigParamsList} from './ConfigParams'
 
-const googleSheetsDefaults: Partial<ConfigParams> = {
+type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol'>
+
+const googleSheetsDefaults: GoogleSheetsDefaults = {
   dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
   localeLang: 'en-US',
   currencySymbol: ['$', 'USD'],
@@ -268,13 +270,13 @@ export class Config implements ConfigParams, ParserConfig {
 
     if (this.compatibilityMode === 'googleSheets') {
       if (dateFormats === undefined) {
-        this.dateFormats = [...googleSheetsDefaults.dateFormats!]
+        this.dateFormats = [...googleSheetsDefaults.dateFormats]
       }
       if (localeLang === undefined) {
-        this.localeLang = googleSheetsDefaults.localeLang!
+        this.localeLang = googleSheetsDefaults.localeLang
       }
       if (currencySymbol === undefined) {
-        this.currencySymbol = [...googleSheetsDefaults.currencySymbol!]
+        this.currencySymbol = [...googleSheetsDefaults.currencySymbol]
       }
     }
 
@@ -326,6 +328,26 @@ export class Config implements ConfigParams, ParserConfig {
 
   public mergeConfig(init: Partial<ConfigParams>): Config {
     const mergedConfig: ConfigParams = Object.assign({}, this.getConfig(), init)
+    const currentCompatibilityMode = this.compatibilityMode
+    const mergedCompatibilityMode = init.compatibilityMode ?? currentCompatibilityMode
+
+    if (init.compatibilityMode !== undefined && mergedCompatibilityMode !== currentCompatibilityMode) {
+      if (init.dateFormats === undefined) {
+        mergedConfig.dateFormats = mergedCompatibilityMode === 'googleSheets'
+          ? [...googleSheetsDefaults.dateFormats]
+          : [...Config.defaultConfig.dateFormats]
+      }
+      if (init.localeLang === undefined) {
+        mergedConfig.localeLang = mergedCompatibilityMode === 'googleSheets'
+          ? googleSheetsDefaults.localeLang
+          : Config.defaultConfig.localeLang
+      }
+      if (init.currencySymbol === undefined) {
+        mergedConfig.currencySymbol = mergedCompatibilityMode === 'googleSheets'
+          ? [...googleSheetsDefaults.currencySymbol]
+          : [...Config.defaultConfig.currencySymbol]
+      }
+    }
 
     Config.warnDeprecatedOptions(init)
 

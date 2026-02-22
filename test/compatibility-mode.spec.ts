@@ -58,6 +58,24 @@ describe('Google Sheets config preset', () => {
     expect(config.localeLang).toBe('en')
     expect(config.currencySymbol).toEqual(['$'])
   })
+
+  it('should apply GSheets defaults when switching mode via mergeConfig', () => {
+    const config = new Config({licenseKey: 'gpl-v3'})
+    const mergedConfig = config.mergeConfig({compatibilityMode: 'googleSheets'})
+
+    expect(mergedConfig.dateFormats).toEqual(['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'])
+    expect(mergedConfig.localeLang).toBe('en-US')
+    expect(mergedConfig.currencySymbol).toEqual(['$', 'USD'])
+  })
+
+  it('should restore default preset when switching back via mergeConfig', () => {
+    const config = new Config({licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+    const mergedConfig = config.mergeConfig({compatibilityMode: 'default'})
+
+    expect(mergedConfig.dateFormats).toEqual(['DD/MM/YYYY', 'DD/MM/YY'])
+    expect(mergedConfig.localeLang).toBe('en')
+    expect(mergedConfig.currencySymbol).toEqual(['$'])
+  })
 })
 
 describe('Google Sheets named expression auto-registration', () => {
@@ -130,6 +148,30 @@ describe('Google Sheets plugin registration', () => {
     ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
 
     expect(hf.getCellValue(adr('C1'))).toBe(3)
+    hf.destroy()
+  })
+})
+
+describe('updateConfig compatibilityMode transitions', () => {
+  it('should apply GSheets defaults when switching to googleSheets mode', () => {
+    const hf = HyperFormula.buildEmpty({licenseKey: 'gpl-v3'})
+
+    hf.updateConfig({compatibilityMode: 'googleSheets'})
+
+    expect(hf.getConfig().dateFormats).toEqual(['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'])
+    expect(hf.getConfig().localeLang).toBe('en-US')
+    expect(hf.getConfig().currencySymbol).toEqual(['$', 'USD'])
+    hf.destroy()
+  })
+
+  it('should restore default preset when switching back to default mode', () => {
+    const hf = HyperFormula.buildEmpty({licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    hf.updateConfig({compatibilityMode: 'default'})
+
+    expect(hf.getConfig().dateFormats).toEqual(['DD/MM/YYYY', 'DD/MM/YY'])
+    expect(hf.getConfig().localeLang).toBe('en')
+    expect(hf.getConfig().currencySymbol).toEqual(['$'])
     hf.destroy()
   })
 })

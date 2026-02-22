@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed an issue where `updateConfig({ compatibilityMode: ... })` didn't re-apply preset defaults for `dateFormats`, `localeLang`, and `currencySymbol` when switching compatibility modes.
+
 ## [3.2.0] - 2026-02-19
 
 ### Added
