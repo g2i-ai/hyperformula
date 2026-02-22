@@ -1,5 +1,6 @@
 import {HyperFormula} from '../src'
 import {Config} from '../src/Config'
+import {deDE} from '../src/i18n/languages'
 import {adr} from './testUtils'
 
 describe('compatibilityMode config option', () => {
@@ -85,6 +86,17 @@ describe('Google Sheets config preset', () => {
 })
 
 describe('Google Sheets named expression auto-registration', () => {
+  it('should auto-register TRUE/FALSE in configured language for non-English mode', () => {
+    HyperFormula.registerLanguage('deDE', deDE)
+    const hf = HyperFormula.buildFromArray([
+      ['=TRUE', '=FALSE'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets', language: 'deDE'})
+
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
+    expect(hf.getCellValue(adr('B1'))).toBe(false)
+    hf.destroy()
+  })
+
   it('should auto-register TRUE named expression in googleSheets mode', () => {
     const hf = HyperFormula.buildFromArray([
       ['=TRUE'],

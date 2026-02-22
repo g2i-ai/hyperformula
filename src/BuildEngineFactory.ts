@@ -126,16 +126,18 @@ export class BuildEngineFactory {
     })
 
     if (config.compatibilityMode === 'googleSheets') {
+      const translatedTrue = config.translationPackage.getFunctionTranslation('TRUE')
+      const translatedFalse = config.translationPackage.getFunctionTranslation('FALSE')
       const globallyDefinedNames = new Set(
         inputNamedExpressions
           .filter((entry: SerializedNamedExpression) => entry.scope === undefined)
           .map((entry: SerializedNamedExpression) => entry.name.toUpperCase())
       )
       if (!globallyDefinedNames.has('TRUE')) {
-        crudOperations.operations.addNamedExpression('TRUE', '=TRUE()', undefined, undefined, true)
+        crudOperations.operations.addNamedExpression('TRUE', `=${translatedTrue}()`, undefined, undefined, true)
       }
       if (!globallyDefinedNames.has('FALSE')) {
-        crudOperations.operations.addNamedExpression('FALSE', '=FALSE()', undefined, undefined, true)
+        crudOperations.operations.addNamedExpression('FALSE', `=${translatedFalse}()`, undefined, undefined, true)
       }
     }
 
