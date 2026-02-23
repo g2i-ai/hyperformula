@@ -259,8 +259,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       const colVal = this.evaluateAst(ast.args[i], state)
       const ascVal = i + 1 < ast.args.length ? this.evaluateAst(ast.args[i + 1], state) : true
 
+      if (colVal instanceof CellError) return colVal
+      if (ascVal instanceof CellError) return ascVal
       const col = typeof colVal === 'number' ? Math.round(colVal) : 1
-      const asc = typeof ascVal === 'boolean' ? ascVal : true
+      const asc = typeof ascVal === 'boolean' ? ascVal : (typeof ascVal === 'number' ? ascVal !== 0 : true)
 
       if (col < 1 || col > width) {
         return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
@@ -1138,8 +1140,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the LINEST result array. */
   public linestArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    const returnStats = ast.args.length > 3
-    return returnStats ? new ArraySize(2, 5) : new ArraySize(2, 1)
+    // When 4 args are present, check if the stats argument (arg[3]) is a literal FALSE value.
+    // If it is, we can statically predict a 1-row result; otherwise assume stats=TRUE (5 rows).
+    if (ast.args.length <= 3) return new ArraySize(2, 1)
+    const statsArg = ast.args[3]
+    const statsIsLiteralFalse = isLiteralFalsy(statsArg)
+    return statsIsLiteralFalse ? new ArraySize(2, 1) : new ArraySize(2, 5)
   }
 
   // ─── LOGEST ───────────────────────────────────────────────────────────────
@@ -1230,8 +1236,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the LOGEST result array. */
   public logestArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    const returnStats = ast.args.length > 3
-    return returnStats ? new ArraySize(2, 5) : new ArraySize(2, 1)
+    // When 4 args are present, check if the stats argument (arg[3]) is a literal FALSE value.
+    // If it is, we can statically predict a 1-row result; otherwise assume stats=TRUE (5 rows).
+    if (ast.args.length <= 3) return new ArraySize(2, 1)
+    const statsArg = ast.args[3]
+    const statsIsLiteralFalse = isLiteralFalsy(statsArg)
+    return statsIsLiteralFalse ? new ArraySize(2, 1) : new ArraySize(2, 5)
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
@@ -1280,6 +1290,21 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
 }
 
 // ─── Module-level helpers ─────────────────────────────────────────────────────
+
+/**
+ * Returns true if the given AST node is a statically-determinable falsy literal.
+ * This includes the numeric literal 0 and a call to FALSE() with no arguments.
+ * Used in size-prediction methods to avoid over-allocating spill regions at parse time.
+ */
+function isLiteralFalsy(ast: Ast): boolean {
+  if (ast.type === AstNodeType.NUMBER) {
+    return ast.value === 0
+  }
+  if (ast.type === AstNodeType.FUNCTION_CALL) {
+    return ast.procedureName === 'FALSE' && ast.args.length === 0
+  }
+  return false
+}
 
 /**
  * Compares two InternalScalarValues for sorting.

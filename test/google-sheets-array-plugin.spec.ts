@@ -706,3 +706,124 @@ describe('LOGEST', () => {
     hf.destroy()
   })
 })
+
+// ─── SORT error propagation and numeric ascending ─────────────────────────────
+
+describe('SORT (error handling and numeric ascending)', () => {
+  it('propagates error from sort column argument', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,NA())', null, null, 3],
+      [null, null, null, 1],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('propagates error from ascending argument', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,NA())', null, null, 3],
+      [null, null, null, 1],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('treats numeric 0 as descending (ascending=FALSE)', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,0)', null, null, 1],
+      [null, null, null, 2],
+      [null, null, null, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(3)
+    expect(hf.getCellValue(adr('A2'))).toBe(2)
+    expect(hf.getCellValue(adr('A3'))).toBe(1)
+    hf.destroy()
+  })
+
+  it('treats numeric 1 as ascending', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,1)', null, null, 3],
+      [null, null, null, 1],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(1)
+    expect(hf.getCellValue(adr('A2'))).toBe(2)
+    expect(hf.getCellValue(adr('A3'))).toBe(3)
+    hf.destroy()
+  })
+})
+
+// ─── LINEST/LOGEST static size prediction ────────────────────────────────────
+
+describe('LINEST size prediction with literal FALSE stats argument', () => {
+  it('does not occupy rows 2-5 when stats=FALSE() is literal', () => {
+    // With stats=FALSE(), result is 1 row: [slope, intercept]
+    // If size prediction wrongly returns 5 rows, A2-A5 become part of the array
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A8:A10,B8:B10,TRUE(),FALSE())', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [3, 1],
+      [5, 2],
+      [7, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)  // slope
+    expect(hf.getCellValue(adr('B1'))).toBeCloseTo(1)  // intercept
+    // A2 must NOT be part of the array when stats=FALSE() (size should be 1 row)
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(false)
+    hf.destroy()
+  })
+
+  it('does not occupy rows 2-5 when stats=0 (numeric false) is literal', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A8:A10,B8:B10,TRUE(),0)', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [3, 1],
+      [5, 2],
+      [7, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)
+    expect(hf.getCellValue(adr('B1'))).toBeCloseTo(1)
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(false)
+    hf.destroy()
+  })
+})
+
+describe('LOGEST size prediction with literal FALSE stats argument', () => {
+  it('does not occupy rows 2-5 when stats=FALSE() is literal', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A8:A10,B8:B10,TRUE(),FALSE())', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [2, 1],
+      [4, 2],
+      [8, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)  // m
+    expect(hf.getCellValue(adr('B1'))).toBeCloseTo(1)  // b
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(false)
+    hf.destroy()
+  })
+})
