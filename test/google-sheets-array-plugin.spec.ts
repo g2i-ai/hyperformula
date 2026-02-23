@@ -111,6 +111,18 @@ describe('UNIQUE', () => {
     expect(hf.getCellValue(adr('A3'))).toBe('c')
     hf.destroy()
   })
+
+  it('keeps rows with different rich-number types even when numeric values match', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=UNIQUE(D1:D2)', null, null, '=DATE(1900,1,-1)'],
+      [null, null, null, '=TIME(0,0,0)'],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(0)
+    expect(hf.getCellValue(adr('A2'))).toBe(0)
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(true)
+    hf.destroy()
+  })
 })
 
 // ─── FLATTEN ─────────────────────────────────────────────────────────────────

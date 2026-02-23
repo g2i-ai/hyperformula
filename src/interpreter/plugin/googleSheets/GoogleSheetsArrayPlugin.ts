@@ -295,7 +295,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const uniqueRows: InternalScalarValue[][] = []
 
     for (const row of data) {
-      const key = JSON.stringify(row)
+      const key = getStableRowIdentity(row)
       if (!seen.has(key)) {
         seen.add(key)
         uniqueRows.push([...row])
@@ -1309,6 +1309,66 @@ function compareValues(a: InternalScalarValue, b: InternalScalarValue): number {
   if (typeof a === 'string' && typeof b === 'string') return a.localeCompare(b)
   if (typeof a === 'boolean' && typeof b === 'boolean') return Number(a) - Number(b)
   return typeOrder(a) - typeOrder(b)
+}
+
+/**
+ * Produces a deterministic identity key for a row of scalar values.
+ *
+ * This avoids collisions and instability from serializing runtime objects directly
+ * (for example `CellError` instances with different `type`s or `RichNumber`
+ * instances with different detailed number kinds).
+ */
+function getStableRowIdentity(row: InternalScalarValue[]): string {
+  return row.map(serializeInternalScalarValue).join('|')
+}
+
+/**
+ * Serializes an InternalScalarValue into a stable, type-aware token.
+ */
+function serializeInternalScalarValue(value: InternalScalarValue): string {
+  if (value === EmptyValue) {
+    return JSON.stringify(['empty'])
+  }
+  if (value instanceof CellError) {
+    return JSON.stringify(['error', value.type, value.message ?? ''])
+  }
+  if (isExtendedNumber(value)) {
+    if (value instanceof RichNumber) {
+      return JSON.stringify([
+        'rich-number',
+        value.getDetailedType(),
+        value.format ?? '',
+        normalizeNumberForIdentity(value.val),
+      ])
+    }
+    return JSON.stringify(['number', normalizeNumberForIdentity(value)])
+  }
+  if (typeof value === 'string') {
+    return JSON.stringify(['string', value])
+  }
+  if (typeof value === 'boolean') {
+    return JSON.stringify(['boolean', value])
+  }
+  return JSON.stringify(['unknown'])
+}
+
+/**
+ * Normalizes numeric edge cases for identity generation.
+ */
+function normalizeNumberForIdentity(value: number): string {
+  if (Object.is(value, -0)) {
+    return '-0'
+  }
+  if (Number.isNaN(value)) {
+    return 'NaN'
+  }
+  if (value === Number.POSITIVE_INFINITY) {
+    return 'Infinity'
+  }
+  if (value === Number.NEGATIVE_INFINITY) {
+    return '-Infinity'
+  }
+  return String(value)
 }
 
 function typeOrder(v: InternalScalarValue): number {
