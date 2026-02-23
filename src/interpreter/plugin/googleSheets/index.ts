@@ -4,7 +4,11 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsArrayPlugin} from './GoogleSheetsArrayPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
+import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
+import {GoogleSheetsMiscPlugin} from './GoogleSheetsMiscPlugin'
+import {GoogleSheetsTextFunctionsPlugin} from './GoogleSheetsTextFunctionsPlugin'
 
 /**
  * Google Sheets override plugins.
@@ -16,6 +20,10 @@ import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsOperatorPlugin,
+  GoogleSheetsArrayPlugin,
+  GoogleSheetsMiscPlugin,
+  GoogleSheetsTextFunctionsPlugin,
 ]
 
-export {GoogleSheetsTextPlugin}
+export {GoogleSheetsTextPlugin, GoogleSheetsOperatorPlugin, GoogleSheetsArrayPlugin, GoogleSheetsMiscPlugin, GoogleSheetsTextFunctionsPlugin}
