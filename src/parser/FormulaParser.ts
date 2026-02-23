@@ -377,6 +377,9 @@ export class FormulaParser extends EmbeddedActionsParser {
               return buildCellErrorAst(new CellError(ErrorType.REF))
             }
             const rowNum = parseInt(endRow.image, 10) - 1
+            if (rowNum < 0 || rowNum >= this.lexerConfig.maxRows) {
+              return buildErrorWithRawInputAst(`${start.image}:${endRow.image}`, new CellError(ErrorType.NAME), start.leadingWhitespace)
+            }
             const endAddr = CellAddress.absolute(this.lexerConfig.maxColumns - 1, rowNum)
             return this.buildCellRange(startAddr, endAddr, start.leadingWhitespace?.image)
           })
@@ -451,6 +454,9 @@ export class FormulaParser extends EmbeddedActionsParser {
         return buildCellErrorAst(new CellError(ErrorType.REF))
       }
       const rowNum = parseInt(startRow.image, 10) - 1
+      if (rowNum < 0 || rowNum >= this.lexerConfig.maxRows) {
+        return buildErrorWithRawInputAst(`${startRow.image}:${end.image}`, new CellError(ErrorType.NAME), startRow.leadingWhitespace)
+      }
       const startAddr = CellAddress.absolute(0, rowNum)
       return this.buildCellRange(startAddr, endAddr, startRow.leadingWhitespace?.image)
     })
@@ -472,6 +478,9 @@ export class FormulaParser extends EmbeddedActionsParser {
         return buildCellErrorAst(new CellError(ErrorType.REF))
       }
       const rowNum = parseInt(rowToken.image, 10) - 1
+      if (rowNum < 0 || rowNum >= this.lexerConfig.maxRows) {
+        return buildErrorWithRawInputAst(`${range.image}${rowToken.image}`, new CellError(ErrorType.NAME), range.leadingWhitespace)
+      }
       const startAddr = CellAddress.fromColAndRow(startColAddr, RowAddress.absolute(0), startColAddr.sheet)
       const endAddr = CellAddress.fromColAndRow(endColAddr, RowAddress.absolute(rowNum), endColAddr.sheet)
       return this.buildCellRange(startAddr, endAddr, range.leadingWhitespace?.image)
