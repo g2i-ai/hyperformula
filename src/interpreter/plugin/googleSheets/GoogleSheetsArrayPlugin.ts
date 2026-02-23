@@ -557,10 +557,14 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   public wrapcolsArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 2) return ArraySize.error()
     const rangeSize = this.arraySizeForAst(ast.args[0], state)
-    const wrapArg = ast.args[1]
-    const wrapCount = wrapArg.type === AstNodeType.NUMBER ? wrapArg.value : 1
-    if (wrapCount < 1) return ArraySize.error()
     const totalElements = rangeSize.width * rangeSize.height
+    const wrapArg = ast.args[1]
+    if (wrapArg.type !== AstNodeType.NUMBER) {
+      const maxWidth = Math.max(1, Math.min(this.config.maxColumns, totalElements))
+      return new ArraySize(maxWidth, this.config.maxRows)
+    }
+    const wrapCount = wrapArg.value
+    if (wrapCount < 1) return ArraySize.error()
     const numCols = Math.ceil(totalElements / wrapCount)
     return new ArraySize(numCols, wrapCount)
   }
@@ -594,10 +598,14 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   public wraprowsArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 2) return ArraySize.error()
     const rangeSize = this.arraySizeForAst(ast.args[0], state)
-    const wrapArg = ast.args[1]
-    const wrapCount = wrapArg.type === AstNodeType.NUMBER ? wrapArg.value : 1
-    if (wrapCount < 1) return ArraySize.error()
     const totalElements = rangeSize.width * rangeSize.height
+    const wrapArg = ast.args[1]
+    if (wrapArg.type !== AstNodeType.NUMBER) {
+      const maxHeight = Math.max(1, Math.min(this.config.maxRows, totalElements))
+      return new ArraySize(this.config.maxColumns, maxHeight)
+    }
+    const wrapCount = wrapArg.value
+    if (wrapCount < 1) return ArraySize.error()
     const numRows = Math.ceil(totalElements / wrapCount)
     return new ArraySize(wrapCount, numRows)
   }
