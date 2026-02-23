@@ -154,15 +154,15 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
   public convert(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('CONVERT'),
       (value: number, fromUnit: string, toUnit: string) => {
-        if (fromUnit === toUnit) {
-          return value
-        }
-
         const fromCategory = this.findCategory(fromUnit)
         const toCategory = this.findCategory(toUnit)
 
         if (fromCategory === null || toCategory === null || fromCategory !== toCategory) {
           return new CellError(ErrorType.NA, ErrorMessage.ValueNotFound)
+        }
+
+        if (fromUnit === toUnit) {
+          return value
         }
 
         const category = GoogleSheetsConversionPlugin.CONVERSION_TABLE[fromCategory]
