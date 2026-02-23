@@ -217,7 +217,7 @@ export function isSimpleCellAddress(obj: unknown): obj is SimpleCellAddress {
     && (typeof obj === 'object' || typeof obj === 'function')
     && typeof (obj as SimpleCellAddress)?.sheet === 'number'
     && typeof (obj as SimpleCellAddress)?.col === 'number'
-    && typeof (obj as SimpleCellAddress)?.row === 'number'
+    && typeof (obj as SimpleCellAddress)?.row === 'number')
 }
 
 export const absoluteSheetReference = (address: AddressWithSheet, baseAddress: SimpleCellAddress): number => {
