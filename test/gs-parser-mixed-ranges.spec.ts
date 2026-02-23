@@ -1,4 +1,6 @@
 import {HyperFormula} from '../src'
+import {ErrorType} from '../src/Cell'
+import {DetailedCellError} from '../src/CellValue'
 import {adr} from './testUtils'
 
 describe('Google Sheets mixed range syntax', () => {
@@ -120,6 +122,68 @@ describe('Google Sheets mixed range syntax', () => {
         [1, 2, '=SUM(A1:B) + 1'],
       ], gsConfig)
       expect(hf.getCellValue(adr('C1'))).toBe(4)
+      hf.destroy()
+    })
+  })
+
+  describe('bounds validation for mixed range row numbers', () => {
+    it('A1:0 (row 0 = index -1) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, 2, '=SUM(A1:0)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('C1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
+      hf.destroy()
+    })
+
+    it('0:B2 (row 0 = index -1) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, 2, '=SUM(0:B2)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('C1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
+      hf.destroy()
+    })
+
+    it('A:B0 (row 0 = index -1) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, 2, '=SUM(A:B0)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('C1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
+      hf.destroy()
+    })
+
+    it('A1:999999 (row > maxRows) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, '=SUM(A1:999999)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('B1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
+      hf.destroy()
+    })
+
+    it('999999:B2 (row > maxRows) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, 2, '=SUM(999999:B2)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('C1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
+      hf.destroy()
+    })
+
+    it('A:B999999 (row > maxRows) returns #NAME? error', () => {
+      const hf = HyperFormula.buildFromArray([
+        [1, '=SUM(A:B999999)'],
+      ], gsConfig)
+      const val = hf.getCellValue(adr('B1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NAME)
       hf.destroy()
     })
   })
