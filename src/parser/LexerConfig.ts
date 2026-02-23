@@ -54,14 +54,6 @@ export const BooleanLiteral = createToken({
   pattern: /TRUE|FALSE/i,
 })
 
-const cellReferenceMatcher = new CellReferenceMatcher()
-export const CellReference = createToken({
-  name: 'CellReference',
-  pattern: cellReferenceMatcher.match.bind(cellReferenceMatcher),
-  start_chars_hint: cellReferenceMatcher.POSSIBLE_START_CHARACTERS,
-  line_breaks: false,
-})
-
 const namedExpressionMatcher = new NamedExpressionMatcher()
 export const NamedExpression = createToken({
   name: 'NamedExpression',
@@ -70,11 +62,19 @@ export const NamedExpression = createToken({
   line_breaks: false,
 })
 
+// Chevrotain uses first-match-wins ordering. Without longer_alt, the BooleanLiteral
+// pattern /TRUE|FALSE/i greedily matches the prefix of any identifier that starts with
+// "true" or "false" (e.g. "TRUECOUNT" → BooleanLiteral:TRUE + NamedExpression:COUNT).
+// Setting LONGER_ALT tells Chevrotain to prefer NamedExpression when it can consume
+// more characters, so "TRUECOUNT" is correctly emitted as a single NamedExpression token.
+BooleanLiteral.LONGER_ALT = NamedExpression
+
 export interface LexerConfig {
   ArgSeparator: TokenType,
   NumberLiteral: TokenType,
   OffsetProcedureName: TokenType,
   BooleanLiteral: TokenType,
+  CellReference: TokenType,
   allTokens: TokenType[],
   errorMapping: Record<string, ErrorType>,
   functionMapping: Record<string, string>,
@@ -88,10 +88,15 @@ export interface LexerConfig {
 }
 
 /**
- * Builds the configuration object for the lexer
+ * Builds the configuration object for the lexer.
+ *
+ * Each call creates a new CellReferenceMatcher instance so that multiple HyperFormula
+ * instances with different configs (e.g. different compatibilityMode or maxColumns) do
+ * not share mutable state. Previously a module-level singleton was reconfigured on every
+ * call, causing the last-built instance's settings to "leak" into all other instances'
+ * lexers.
  */
 export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
-  cellReferenceMatcher.configure(config.compatibilityMode, config.maxColumns)
   const offsetProcedureNameLiteral = config.translationPackage.getFunctionTranslation('OFFSET')
   const errorMapping = config.errorMapping
   const functionMapping = config.translationPackage.buildFunctionMapping()
@@ -102,6 +107,17 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
   const ArrayColSeparator = createToken({name: 'ArrayColSep', pattern: config.arrayColumnSeparator})
   const NumberLiteral = createToken({ name: 'NumberLiteral', pattern: new RegExp(`(([${config.decimalSeparator}]\\d+)|(\\d+([${config.decimalSeparator}]\\d*)?))(e[+-]?\\d+)?`) })
   const OffsetProcedureName = createToken({ name: 'OffsetProcedureName', pattern: new RegExp(offsetProcedureNameLiteral, 'i') })
+
+  // Create a new CellReferenceMatcher per buildLexerConfig call so each HyperFormula
+  // instance owns its own matcher and its configuration is never overwritten by other instances.
+  const cellReferenceMatcher = new CellReferenceMatcher()
+  cellReferenceMatcher.configure(config.compatibilityMode, config.maxColumns)
+  const CellReference = createToken({
+    name: 'CellReference',
+    pattern: cellReferenceMatcher.match.bind(cellReferenceMatcher),
+    start_chars_hint: cellReferenceMatcher.POSSIBLE_START_CHARACTERS,
+    line_breaks: false,
+  })
 
   let ArgSeparator: TokenType
   let inject: TokenType[]
@@ -160,6 +176,7 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     NumberLiteral,
     OffsetProcedureName,
     BooleanLiteral,
+    CellReference,
     ArrayRowSeparator,
     ArrayColSeparator,
     WhiteSpace,

@@ -73,7 +73,6 @@ import {
   ArrayRParen,
   BooleanLiteral,
   BooleanOp,
-  CellReference,
   ColumnRange,
   ConcatenateOp,
   DivOp,
@@ -278,7 +277,7 @@ export class FormulaParser extends EmbeddedActionsParser {
    * Rule for cell reference expression (e.g., A1, $A1, A$1, $A$1, $Sheet42!A$17)
    */
   private cellReference: AstRule = this.RULE('cellReference', () => {
-    const cell = this.CONSUME(CellReference) as ExtendedToken
+    const cell = this.CONSUME(this.lexerConfig.CellReference) as ExtendedToken
     const address = this.ACTION(() => {
       return cellAddressFromString(cell.image, this.formulaAddress, this.resolveSheetReference)
     })
@@ -296,7 +295,7 @@ export class FormulaParser extends EmbeddedActionsParser {
    * Rule for end range reference expression with additional checks considering range start
    */
   private endRangeReference: AstRule = this.RULE('endRangeReference', (start: ExtendedToken) => {
-    const end = this.CONSUME(CellReference) as ExtendedToken
+    const end = this.CONSUME(this.lexerConfig.CellReference) as ExtendedToken
 
     const startAddress = this.ACTION(() => {
       return cellAddressFromString(start.image, this.formulaAddress, this.resolveSheetReference)
@@ -390,7 +389,7 @@ export class FormulaParser extends EmbeddedActionsParser {
    * Rule for cell ranges (e.g., A1:B$3, A1:OFFSET())
    */
   private cellRangeExpression: AstRule = this.RULE('cellRangeExpression', () => {
-    const start = this.CONSUME(CellReference)
+    const start = this.CONSUME(this.lexerConfig.CellReference)
     this.CONSUME2(RangeSeparator)
     return this.SUBRULE(this.endOfRangeExpression, {ARGS: [start]})
   })
@@ -399,7 +398,7 @@ export class FormulaParser extends EmbeddedActionsParser {
    * Rule for end range reference expression starting with offset procedure with additional checks considering range start
    */
   private endRangeWithOffsetStartReference: AstRule = this.RULE('endRangeWithOffsetStartReference', (start: CellReferenceAst) => {
-    const end = this.CONSUME(CellReference) as ExtendedToken
+    const end = this.CONSUME(this.lexerConfig.CellReference) as ExtendedToken
 
     const endAddress = this.ACTION(() => {
       return cellAddressFromString(end.image, this.formulaAddress, this.resolveSheetReference)
@@ -445,7 +444,7 @@ export class FormulaParser extends EmbeddedActionsParser {
   private rowToCellRangeExpression: AstRule = this.RULE('rowToCellRangeExpression', () => {
     const startRow = this.CONSUME(this.lexerConfig.NumberLiteral) as ExtendedToken
     this.CONSUME(RangeSeparator)
-    const end = this.CONSUME(CellReference) as ExtendedToken
+    const end = this.CONSUME(this.lexerConfig.CellReference) as ExtendedToken
     return this.ACTION(() => {
       const endAddr = cellAddressFromString(end.image, this.formulaAddress, this.resolveSheetReference)
       if (!endAddr) {
@@ -1008,9 +1007,9 @@ export class FormulaLexer {
 
   private skipWhitespacesInsideRanges(tokens: IToken[]): IToken[] {
     return FormulaLexer.filterTokensByNeighbors(tokens, (previous: IToken, current: IToken, next: IToken) => {
-      return (tokenMatcher(previous, CellReference) || tokenMatcher(previous, RangeSeparator))
+      return (tokenMatcher(previous, this.lexerConfig.CellReference) || tokenMatcher(previous, RangeSeparator))
         && tokenMatcher(current, this.lexerConfig.WhiteSpace)
-        && (tokenMatcher(next, CellReference) || tokenMatcher(next, RangeSeparator))
+        && (tokenMatcher(next, this.lexerConfig.CellReference) || tokenMatcher(next, RangeSeparator))
     })
   }
 
