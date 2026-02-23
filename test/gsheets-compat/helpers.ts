@@ -1,4 +1,4 @@
-import {DetailedCellError} from '../../src/CellValue'
+import {DetailedCellError} from '../../src'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,14 +168,12 @@ export function valuesMatch(ours: string, ref: string): boolean {
   const a = normalize(ours)
   const b = normalize(ref)
 
-  // Both empty or zero-equivalent
-  if ((a === '' || a === '0') && (b === '' || b === '0')) return true
-
   // Exact match
   if (a === b) return true
 
-  // Case-insensitive match for booleans
-  if (a.toUpperCase() === b.toUpperCase()) return true
+  // Case-insensitive match for booleans only
+  const BOOL_VALS = new Set(['TRUE', 'FALSE'])
+  if (BOOL_VALS.has(a.toUpperCase()) && a.toUpperCase() === b.toUpperCase()) return true
 
   // Numeric comparison with relative tolerance
   const numA = parseFloat(a)
