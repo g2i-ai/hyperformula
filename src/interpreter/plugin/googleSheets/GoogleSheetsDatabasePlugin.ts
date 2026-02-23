@@ -7,7 +7,7 @@ import {CellError, ErrorType} from '../../../Cell'
 import {ErrorMessage} from '../../../error-message'
 import {ProcedureAst} from '../../../parser'
 import {InterpreterState} from '../../InterpreterState'
-import {InternalScalarValue, InterpreterValue} from '../../InterpreterValue'
+import {EmptyValue, InternalScalarValue, InterpreterValue} from '../../InterpreterValue'
 import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 
@@ -116,7 +116,7 @@ function matchesCriterion(cellValue: InternalScalarValue, criterion: ParsedCrite
  */
 function findColumnIndexByName(headers: InternalScalarValue[], fieldName: string): number {
   return headers.findIndex(h => {
-    if (h === null || h === undefined) return false
+    if (h === null || h === undefined || h === EmptyValue) return false
     const rawH = h instanceof Object && 'val' in h ? (h as {val: number}).val : h
     return typeof rawH === 'string' && rawH.toLowerCase() === fieldName.toLowerCase()
   })
@@ -178,7 +178,7 @@ function findMatchingRowIndices(
 
   // Map criteria column indices to database column indices
   const criteriaColumnMap = criteriaHeaders.map(header => {
-    if (header === null || header === undefined) return -1
+    if (header === null || header === undefined || header === EmptyValue) return -1
     const rawHeader = header instanceof Object && 'val' in header
       ? (header as {val: number}).val
       : header
@@ -194,7 +194,7 @@ function findMatchingRowIndices(
         if (dbColIdx === -1) return true // Unknown header, skip
 
         const criteriaCell = criteriaRow[criteriaColIdx]
-        if (criteriaCell === null || criteriaCell === undefined || criteriaCell === '') {
+        if (criteriaCell === null || criteriaCell === undefined || criteriaCell === '' || criteriaCell === EmptyValue) {
           return true // Empty criterion matches everything
         }
 

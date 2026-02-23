@@ -572,4 +572,20 @@ describe('GoogleSheetsDatabasePlugin', () => {
     expect(hf.getCellValue(adr('A11'))).toBe(5)
     hf.destroy()
   })
+
+  it('null (EmptyValue) criteria cell matches all rows', () => {
+    // A truly empty cell (null → EmptyValue symbol internally) must be
+    // treated as "no filter" and match every row, not as a string comparison.
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      [null],            // null becomes EmptyValue — must still match all rows
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data as (string | number | null)[][])
+    expect(hf.getCellValue(adr('A11'))).toBe(5)
+    hf.destroy()
+  })
 })
