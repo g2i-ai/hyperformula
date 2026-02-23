@@ -4,6 +4,7 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsArrayPlugin} from './GoogleSheetsArrayPlugin'
 import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
 import {GoogleSheetsDatabasePlugin} from './GoogleSheetsDatabasePlugin'
 import {GoogleSheetsFinancialPlugin} from './GoogleSheetsFinancialPlugin'
@@ -22,6 +23,7 @@ import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
  * the overridden function implementations via Map.set.
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
+  GoogleSheetsArrayPlugin,
   GoogleSheetsConversionPlugin,
   GoogleSheetsDatabasePlugin,
   GoogleSheetsFinancialPlugin,
@@ -32,4 +34,4 @@ export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsOperatorPlugin,
 ]
 
-export {GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsFinancialPlugin, GoogleSheetsInfoPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
+export {GoogleSheetsArrayPlugin, GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsFinancialPlugin, GoogleSheetsInfoPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
