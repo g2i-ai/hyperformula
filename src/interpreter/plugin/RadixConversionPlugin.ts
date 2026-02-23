@@ -241,7 +241,7 @@ export class RadixConversionPlugin extends FunctionPlugin implements FunctionPlu
   }
 }
 
-function coerceStringToBase(value: string, base: number, maxLength: number): Maybe<string> {
+export function coerceStringToBase(value: string, base: number, maxLength: number): Maybe<string> {
   const baseAlphabet = ALPHABET.substr(0, base)
   const regex = new RegExp(`^[${baseAlphabet}]+$`)
   if (value.length > maxLength || !regex.test(value)) {
@@ -250,7 +250,7 @@ function coerceStringToBase(value: string, base: number, maxLength: number): May
   return value
 }
 
-function decimalToBaseWithExactPadding(value: number, base: number, places?: number): string | CellError {
+export function decimalToBaseWithExactPadding(value: number, base: number, places?: number): string | CellError {
   if (value > maxValFromBase(base)) {
     return new CellError(ErrorType.NUM, ErrorMessage.ValueBaseLarge)
   }
@@ -267,11 +267,11 @@ function decimalToBaseWithExactPadding(value: number, base: number, places?: num
   }
 }
 
-function minValFromBase(base: number) {
+export function minValFromBase(base: number) {
   return -Math.pow(base, MAX_LENGTH) / 2
 }
 
-function maxValFromBase(base: number) {
+export function maxValFromBase(base: number) {
   return -minValFromBase(base) - 1
 }
 
@@ -284,12 +284,12 @@ function decimalToBaseWithMinimumPadding(value: number, base: number, places?: n
   }
 }
 
-function decimalToRadixComplement(value: number, base: number): string {
+export function decimalToRadixComplement(value: number, base: number): string {
   const offset = value < 0 ? Math.pow(base, MAX_LENGTH) : 0
   return (value + offset).toString(base).toUpperCase()
 }
 
-function twoComplementToDecimal(value: string, base: number): number {
+export function twoComplementToDecimal(value: string, base: number): number {
   const parsed = parseInt(value, base)
   const offset = Math.pow(base, MAX_LENGTH)
   return (parsed >= offset / 2) ? parsed - offset : parsed

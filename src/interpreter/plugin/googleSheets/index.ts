@@ -7,10 +7,12 @@ import type { FunctionPluginDefinition } from '../FunctionPlugin'
 import {GoogleSheetsArrayPlugin} from './GoogleSheetsArrayPlugin'
 import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
 import {GoogleSheetsDatabasePlugin} from './GoogleSheetsDatabasePlugin'
+import {GoogleSheetsEngineeringFixesPlugin} from './GoogleSheetsEngineeringFixesPlugin'
 import {GoogleSheetsFinancialPlugin} from './GoogleSheetsFinancialPlugin'
 import {GoogleSheetsInfoPlugin} from './GoogleSheetsInfoPlugin'
 import {GoogleSheetsMiscPlugin} from './GoogleSheetsMiscPlugin'
 import {GoogleSheetsStatisticalPlugin} from './GoogleSheetsStatisticalPlugin'
+import {GoogleSheetsStatisticalFixesPlugin} from './GoogleSheetsStatisticalFixesPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
 import {GoogleSheetsTextFunctionsPlugin} from './GoogleSheetsTextFunctionsPlugin'
 import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
@@ -27,13 +29,15 @@ export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsArrayPlugin,
   GoogleSheetsConversionPlugin,
   GoogleSheetsDatabasePlugin,
+  GoogleSheetsEngineeringFixesPlugin,
   GoogleSheetsFinancialPlugin,
   GoogleSheetsInfoPlugin,
   GoogleSheetsMiscPlugin,
   GoogleSheetsStatisticalPlugin,
+  GoogleSheetsStatisticalFixesPlugin,
   GoogleSheetsTextPlugin,
   GoogleSheetsTextFunctionsPlugin,
   GoogleSheetsOperatorPlugin,
 ]
 
-export {GoogleSheetsArrayPlugin, GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsFinancialPlugin, GoogleSheetsInfoPlugin, GoogleSheetsMiscPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
+export {GoogleSheetsArrayPlugin, GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsEngineeringFixesPlugin, GoogleSheetsFinancialPlugin, GoogleSheetsInfoPlugin, GoogleSheetsMiscPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsStatisticalFixesPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
