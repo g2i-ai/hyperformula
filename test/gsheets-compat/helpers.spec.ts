@@ -72,6 +72,23 @@ describe('valuesMatch', () => {
     })
   })
 
+  describe('empty string vs zero (Number("") === 0 edge case)', () => {
+    it('does not match empty string against "0"', () => {
+      // HyperFormula returns null → cellValueToString → "", GSheets expected "0"
+      // Number("") === 0 would cause false match without guard
+      expect(valuesMatch('', '0')).toBe(false)
+    })
+
+    it('does not match "0" against empty string', () => {
+      expect(valuesMatch('0', '')).toBe(false)
+    })
+
+    it('does not match two empty strings numerically (both are null/empty)', () => {
+      // Two empty strings should match exactly (exact match branch) or fail numeric
+      expect(valuesMatch('', '')).toBe(true)
+    })
+  })
+
   describe('mismatched values', () => {
     it('does not match different error strings', () => {
       expect(valuesMatch('#N/A', '#VALUE!')).toBe(false)

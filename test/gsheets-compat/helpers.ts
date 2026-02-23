@@ -178,8 +178,9 @@ export function valuesMatch(ours: string, ref: string): boolean {
   // Numeric comparison with relative tolerance.
   // Use Number() (not parseFloat) to avoid false positives: parseFloat("4-9i")
   // and parseFloat("7/20/1969") extract leading digits, making different values match.
-  const numA = Number(a)
-  const numB = Number(b)
+  // Guard against empty strings: Number("") === 0, which would falsely match "0".
+  const numA = a === '' ? NaN : Number(a)
+  const numB = b === '' ? NaN : Number(b)
   if (!isNaN(numA) && !isNaN(numB)) {
     if (numA === 0 && numB === 0) return true
     const denom = Math.max(Math.abs(numA), Math.abs(numB))
