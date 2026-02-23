@@ -5,6 +5,7 @@
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
+import {GoogleSheetsTextFunctionsPlugin} from './GoogleSheetsTextFunctionsPlugin'
 import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
 
 /**
@@ -17,7 +18,8 @@ import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsTextFunctionsPlugin,
   GoogleSheetsOperatorPlugin,
 ]
 
-export {GoogleSheetsTextPlugin, GoogleSheetsOperatorPlugin}
+export {GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}

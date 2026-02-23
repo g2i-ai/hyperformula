@@ -431,6 +431,21 @@ const dictionary: RawTranslationPackage = {
     'CEILING.PRECISE': 'CEILING.PRECISE', //FIXME
     'FLOOR.PRECISE': 'FLOOR.PRECISE', //FIXME
     'ISO.CEILING': 'ISO.CEILING', //FIXME
+    ASC: 'ASC',
+    DOLLAR: 'DOLLAR',
+    FINDB: 'FINDB',
+    FIXED: 'FIXED',
+    JOIN: 'JOIN',
+    LEFTB: 'LEFTB',
+    LENB: 'LENB',
+    MIDB: 'MIDB',
+    REGEXEXTRACT: 'REGEXEXTRACT',
+    REGEXMATCH: 'REGEXMATCH',
+    REGEXREPLACE: 'REGEXREPLACE',
+    REPLACEB: 'REPLACEB',
+    RIGHTB: 'RIGHTB',
+    SEARCHB: 'SEARCHB',
+    TEXTJOIN: 'TEXTJOIN',
   },
   langCode: 'fiFI',
   ui: {
