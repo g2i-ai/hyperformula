@@ -192,6 +192,23 @@ describe('GoogleSheetsInfoPlugin', () => {
       hf.destroy()
     })
 
+    it('returns 16 (error) for reference to a removed sheet, not throwing', () => {
+      const hf = HyperFormula.buildFromSheets({
+        Sheet1: [['=TYPE(Sheet2!A1)']],
+        Sheet2: [[42]],
+      }, {
+        compatibilityMode: 'googleSheets',
+        licenseKey: 'gpl-v3',
+      })
+      // Sanity: before removal, TYPE(Sheet2!A1) should be 1 (number)
+      expect(hf.getCellValue(adr('A1'))).toBe(1)
+      // Remove Sheet2 to create an invalid sheet reference
+      hf.removeSheet(hf.getSheetId('Sheet2')!)
+      // After removal, TYPE should return 16 (error) since the ref becomes #REF!
+      expect(hf.getCellValue(adr('A1'))).toBe(16)
+      hf.destroy()
+    })
+
     it('handles missing argument', () => {
       const hf = buildWithPlugin([['=TYPE()']])
       const result = hf.getCellValue(adr('A1')) as DetailedCellError
