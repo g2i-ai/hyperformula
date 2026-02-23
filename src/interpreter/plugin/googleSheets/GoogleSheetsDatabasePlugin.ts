@@ -52,7 +52,7 @@ function parseCriterion(raw: string | number): ParsedCriterion {
     const operator = comparisonMatch[1] as ParsedCriterion['operator']
     const valueStr = comparisonMatch[2]
     const numericValue = Number(valueStr)
-    const value = isNaN(numericValue) ? valueStr : numericValue
+    const value = valueStr === '' || isNaN(numericValue) ? valueStr : numericValue
     return {operator, value, isWildcard: false}
   }
 
@@ -241,73 +241,61 @@ export class GoogleSheetsDatabasePlugin extends FunctionPlugin implements Functi
     'DAVERAGE': {
       method: 'daverage',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DCOUNT': {
       method: 'dcount',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DCOUNTA': {
       method: 'dcounta',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DGET': {
       method: 'dget',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DMAX': {
       method: 'dmax',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DMIN': {
       method: 'dmin',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DPRODUCT': {
       method: 'dproduct',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DSTDEV': {
       method: 'dstdev',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DSTDEVP': {
       method: 'dstdevp',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DSUM': {
       method: 'dsum',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DVAR': {
       method: 'dvar',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'DVARP': {
       method: 'dvarp',
       parameters: DATABASE_PARAMETERS,
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
   }
@@ -437,7 +425,7 @@ export class GoogleSheetsDatabasePlugin extends FunctionPlugin implements Functi
     const {nums, error} = this.getNumericValues(ast, state)
     if (error) return error
     if (nums.length === 0) return 0
-    return Math.max(...nums)
+    return nums.reduce((max, n) => (n > max ? n : max), nums[0])
   }
 
   /** DMIN — minimum numeric value in the field column for matching rows. */
@@ -445,7 +433,7 @@ export class GoogleSheetsDatabasePlugin extends FunctionPlugin implements Functi
     const {nums, error} = this.getNumericValues(ast, state)
     if (error) return error
     if (nums.length === 0) return 0
-    return Math.min(...nums)
+    return nums.reduce((min, n) => (n < min ? n : min), nums[0])
   }
 
   /** DPRODUCT — product of numeric values in the field column for matching rows. */
