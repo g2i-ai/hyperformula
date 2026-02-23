@@ -260,7 +260,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       const ascVal = i + 1 < ast.args.length ? this.evaluateAst(ast.args[i + 1], state) : true
 
       const col = typeof colVal === 'number' ? Math.round(colVal) : 1
-      const asc = typeof ascVal === 'boolean' ? ascVal : true
+      // Google Sheets treats 0 (and any falsy number) as FALSE (descending).
+      // Only default to ascending when the argument is absent.
+      const asc = typeof ascVal === 'boolean' ? ascVal : (typeof ascVal === 'number' ? ascVal !== 0 : true)
 
       if (col < 1 || col > width) {
         return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
@@ -1138,7 +1140,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the LINEST result array. */
   public linestArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    const returnStats = ast.args.length > 3
+    // When the stats argument is present but statically provably false (literal 0 or FALSE()),
+    // return 1 row. For dynamic references we cannot know the runtime value, so we
+    // conservatively predict 5 rows to avoid truncating the output.
+    const returnStats = ast.args.length > 3 && !isLiteralFalse(ast.args[3])
     return returnStats ? new ArraySize(2, 5) : new ArraySize(2, 1)
   }
 
@@ -1230,7 +1235,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the LOGEST result array. */
   public logestArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    const returnStats = ast.args.length > 3
+    // When the stats argument is present but statically provably false (literal 0 or FALSE()),
+    // return 1 row. For dynamic references we cannot know the runtime value, so we
+    // conservatively predict 5 rows to avoid truncating the output.
+    const returnStats = ast.args.length > 3 && !isLiteralFalse(ast.args[3])
     return returnStats ? new ArraySize(2, 5) : new ArraySize(2, 1)
   }
 
@@ -1371,4 +1379,23 @@ function reshapeToMatrix(flat: number[], rows: number, cols: number): number[][]
     result.push(row)
   }
   return result
+}
+
+/**
+ * Returns true if the AST node is a statically-provable false value:
+ * a literal 0 (NUMBER node) or a call to the FALSE() function.
+ *
+ * Used by size-prediction methods to decide at parse time whether the stats
+ * argument of LINEST/LOGEST is definitely false. When the argument is a cell
+ * reference or other dynamic expression, this returns false and the caller
+ * conservatively predicts the larger (5-row) output size.
+ */
+function isLiteralFalse(node: Ast): boolean {
+  if (node.type === AstNodeType.NUMBER && node.value === 0) {
+    return true
+  }
+  if (node.type === AstNodeType.FUNCTION_CALL && (node as ProcedureAst).procedureName === 'FALSE') {
+    return true
+  }
+  return false
 }

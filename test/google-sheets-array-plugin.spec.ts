@@ -58,6 +58,34 @@ describe('SORT', () => {
     expect(hf.getCellValue(adr('B2'))).toBe('b')
     hf.destroy()
   })
+
+  it('treats numeric 0 as descending (same as FALSE)', () => {
+    // SORT(range, col, 0) — numeric 0 should mean descending
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,0)', null, null, 1],
+      [null, null, null, 3],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(3)
+    expect(hf.getCellValue(adr('A2'))).toBe(2)
+    expect(hf.getCellValue(adr('A3'))).toBe(1)
+    hf.destroy()
+  })
+
+  it('treats numeric 1 as ascending (same as TRUE)', () => {
+    // SORT(range, col, 1) — numeric 1 should mean ascending
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,1)', null, null, 3],
+      [null, null, null, 1],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(1)
+    expect(hf.getCellValue(adr('A2'))).toBe(2)
+    expect(hf.getCellValue(adr('A3'))).toBe(3)
+    hf.destroy()
+  })
 })
 
 // ─── UNIQUE ───────────────────────────────────────────────────────────────────
@@ -703,6 +731,25 @@ describe('LOGEST', () => {
     ], gsOptions)
 
     expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('returns only 1 row when stats=FALSE() is a literal', () => {
+    // With LOGEST(y, x, TRUE, FALSE()), the size prediction should return 1 row.
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A4:A6,B4:B6,TRUE(),FALSE())', null],
+      [null, null],
+      [null, null],
+      [2, 1],
+      [4, 2],
+      [8, 3],
+    ], gsOptions)
+
+    // Only row 1 should be filled (1-row output)
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)  // m
+    expect(hf.getCellValue(adr('B1'))).toBeCloseTo(1)  // b
+    // Row 2 must be empty — stats were not requested
+    expect(hf.getCellValue(adr('A2'))).toBeNull()
     hf.destroy()
   })
 })
