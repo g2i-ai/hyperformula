@@ -212,7 +212,8 @@ export const addressKey = (address: SimpleCellAddress) => `${address.sheet},${ad
  * Checks if the object is a simple cell address.
  */
 export function isSimpleCellAddress(obj: unknown): obj is SimpleCellAddress {
-  return obj
+  return obj !== null
+    && obj !== undefined
     && (typeof obj === 'object' || typeof obj === 'function')
     && typeof (obj as SimpleCellAddress)?.sheet === 'number'
     && typeof (obj as SimpleCellAddress)?.col === 'number'
