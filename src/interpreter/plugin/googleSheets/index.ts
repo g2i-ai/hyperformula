@@ -4,6 +4,7 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
 
 /**
@@ -16,6 +17,7 @@ import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsConversionPlugin,
 ]
 
-export {GoogleSheetsTextPlugin}
+export {GoogleSheetsConversionPlugin, GoogleSheetsTextPlugin}
