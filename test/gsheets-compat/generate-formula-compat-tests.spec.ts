@@ -1,14 +1,16 @@
 /**
- * Tests for generate-formula-compat-tests script output.
+ * Tests for generate-formula-compat-tests and generate-formula-test-csv output.
  *
  * Verifies that functions known to fail in GSheets with inline arrays
- * are configured to use real cell ranges instead.
+ * are configured to use real cell ranges instead, and that the CSV
+ * generator emits all corresponding data blocks.
  */
 
 import {existsSync, readFileSync} from 'fs'
 import {resolve} from 'path'
 
 const JSON_PATH = resolve(__dirname, '__fixtures__/formula-compat-tests.json')
+const CSV_PATH = resolve(__dirname, '__fixtures__/formula-compat-input.csv')
 
 describe('generate-formula-compat-tests output', () => {
   let data: {
@@ -120,6 +122,45 @@ describe('generate-formula-compat-tests output', () => {
       const test = entry!.tests[0]!
       expect(test.formula).not.toMatch(/\{[^}]*"[^"]+\/[^"]+\/\d{4}"[^}]*\}/)
       expect(test.formula).toMatch(/[A-Z]\d+:[A-Z]\d+/)
+    })
+  })
+})
+
+describe('generate-formula-test-csv output', () => {
+  let csvLines: string[]
+
+  beforeAll(() => {
+    if (!existsSync(CSV_PATH)) {
+      throw new Error(
+        'formula-compat-input.csv not found. Run: npx ts-node --transpile-only -O \'{"module":"commonjs"}\' script/generate-formula-test-csv.ts'
+      )
+    }
+    csvLines = readFileSync(CSV_PATH, 'utf-8').split('\n')
+  })
+
+  describe('holiday data block', () => {
+    it('emits holiday date data at rows 781-782 for NETWORKDAYS/WORKDAY', () => {
+      // CSV is 1-indexed; row 781 is at index 780, row 782 at index 781
+      // The rows contain label at 780 (header) and data at 781-782
+      // Match lines where column A is one of the holiday dates (with or without trailing comma)
+      const isHoliday1 = (line: string): boolean =>
+        line.startsWith('7/20/1969,') || line.startsWith('"7/20/1969",') ||
+        line.trimEnd() === '7/20/1969' || line.trimEnd() === '"7/20/1969"'
+      const isHoliday2 = (line: string): boolean =>
+        line.startsWith('7/21/1969,') || line.startsWith('"7/21/1969",') ||
+        line.trimEnd() === '7/21/1969' || line.trimEnd() === '"7/21/1969"'
+      expect(csvLines.some(isHoliday1)).toBe(true)
+      expect(csvLines.some(isHoliday2)).toBe(true)
+    })
+
+    it('holiday data appears after row 780 (after special cells block)', () => {
+      // Special cells block ends at row 772; holiday block must come after
+      const isHoliday1 = (line: string): boolean =>
+        line.startsWith('7/20/1969,') || line.startsWith('"7/20/1969",') ||
+        line.trimEnd() === '7/20/1969' || line.trimEnd() === '"7/20/1969"'
+      const holidayLine1 = csvLines.findIndex(isHoliday1)
+      // 0-indexed line index + 1 = 1-indexed CSV row
+      expect(holidayLine1 + 1).toBeGreaterThan(780)
     })
   })
 })

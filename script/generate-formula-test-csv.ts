@@ -248,6 +248,13 @@ setCell(771, 1, "=1+1");  // formula cell
 setCell(772, 0, "");       // empty cell
 setCell(772, 1, "hello");
 
+// ── Holiday dates for NETWORKDAYS/WORKDAY (rows 780-782) ──────────────
+// GSheets requires real cell ranges for the holidays parameter;
+// inline arrays return #VALUE!
+setCell(780, 0, "[HOLIDAYS]");
+setCell(781, 0, "7/20/1969");
+setCell(782, 0, "7/21/1969");
+
 // ---------------------------------------------------------------------------
 // Write CSV
 // ---------------------------------------------------------------------------
