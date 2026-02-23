@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import Papa from "papaparse";
+import { parseGSheetsValue } from "./parse-gsheets-value";
 
 const JSON_PATH = resolve(__dirname, '../test/gsheets-compat/__fixtures__/formula-compat-tests.json');
 const CSV_PATH = resolve(__dirname, '../test/gsheets-compat/__fixtures__/formula-compat-gsheets.csv');
@@ -111,28 +112,4 @@ if (notFound > 0) {
   }
 }
 
-/**
- * Parses a raw string value from GSheets CSV into a typed value.
- * GSheets exports: numbers as numbers, TRUE/FALSE as booleans,
- * errors as #ERROR! strings, and everything else as strings.
- */
-function parseGSheetsValue(raw: string): string | number | boolean | null {
-  const trimmed = raw.trim();
-
-  // Empty → null
-  if (trimmed === "") return null;
-
-  // Booleans
-  if (trimmed === "TRUE") return true;
-  if (trimmed === "FALSE") return false;
-
-  // Error strings (keep as-is)
-  if (trimmed.startsWith("#")) return trimmed;
-
-  // Try numeric
-  const num = Number(trimmed);
-  if (!isNaN(num) && trimmed !== "") return num;
-
-  // Default: string
-  return trimmed;
-}
+export { parseGSheetsValue };
