@@ -321,6 +321,20 @@ describe('WRAPCOLS', () => {
     expect(hf.getCellValue(adr('B3'))).toBe(0)
     hf.destroy()
   })
+
+  it('predicts spill height correctly when wrap_count is a reference', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=WRAPCOLS(D1:F1,E5)', null, null, 1, 2, 3],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, 2, null],
+    ], gsOptions)
+
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('B2'))).toBe(true)
+    hf.destroy()
+  })
 })
 
 // ─── WRAPROWS ─────────────────────────────────────────────────────────────────
@@ -350,6 +364,26 @@ describe('WRAPROWS', () => {
 
     // Rows: [1,2,3], [4,5,-1]
     expect(hf.getCellValue(adr('C2'))).toBe(-1)
+    hf.destroy()
+  })
+
+  it('predicts spill width correctly when wrap_count is a reference', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=WRAPROWS(D10:F10,A5)', null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [2, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, 1, 2, 3],
+    ], gsOptions)
+
+    expect(hf.isCellPartOfArray(adr('B1'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('B2'))).toBe(true)
     hf.destroy()
   })
 })
