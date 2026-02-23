@@ -42,7 +42,7 @@ export class NumberLiteralMatcher {
 
   private buildFallbackRegex(decimalSep: '.' | ','): RegExp {
     const sep = decimalSep === '.' ? '\\.' : ','
-    return new RegExp(`(${sep}\\d+|\\d+(${sep}\\d*)?)(e[+-]?\\d+)?`, 'y')
+    return new RegExp(`(${sep}\\d+|\\d+(${sep}\\d*)?)([eE][+-]?\\d+)?`, 'y')
   }
 
   /** Fast path: standard regex when no thousands separator collision. */

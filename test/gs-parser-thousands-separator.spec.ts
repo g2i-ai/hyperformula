@@ -114,6 +114,24 @@ describe('Thousands separator - GSheets mode', () => {
       expect(hf.getCellValue(adr('A1'))).toBe(100000)
       hf.destroy()
     })
+
+    it('1E5 - uppercase E in scientific notation (default mode, no thousandSeparator)', () => {
+      const hf = HyperFormula.buildFromArray([['=1E5']], defaultConfig)
+      expect(hf.getCellValue(adr('A1'))).toBe(100000)
+      hf.destroy()
+    })
+
+    it('1E5 - uppercase E in scientific notation (GSheets mode with thousandSeparator)', () => {
+      const hf = HyperFormula.buildFromArray([['=1E5']], gsConfig)
+      expect(hf.getCellValue(adr('A1'))).toBe(100000)
+      hf.destroy()
+    })
+
+    it('1,000E2 - thousands with uppercase E scientific notation', () => {
+      const hf = HyperFormula.buildFromArray([['=1,000E2']], gsConfig)
+      expect(hf.getCellValue(adr('A1'))).toBe(100000)
+      hf.destroy()
+    })
   })
 
   describe('leading group >3 digits (no thousands grouping)', () => {
