@@ -128,6 +128,32 @@ describe('parseGSheetsValue', () => {
     })
   })
 
+  describe('leading-zero strings (base-conversion function output)', () => {
+    it('preserves leading zeros for binary strings like "010011" (BASE function)', () => {
+      expect(parseGSheetsValue('010011')).toBe('010011')
+    })
+
+    it('preserves leading zeros for "01100100" (DEC2BIN function)', () => {
+      expect(parseGSheetsValue('01100100')).toBe('01100100')
+    })
+
+    it('preserves leading zeros for "00000005" (BIN2OCT function)', () => {
+      expect(parseGSheetsValue('00000005')).toBe('00000005')
+    })
+
+    it('preserves leading zeros for "00000064" (DEC2HEX function)', () => {
+      expect(parseGSheetsValue('00000064')).toBe('00000064')
+    })
+
+    it('preserves leading zeros for "0000001F" (OCT2HEX - contains hex digit)', () => {
+      expect(parseGSheetsValue('0000001F')).toBe('0000001F')
+    })
+
+    it('still parses plain "0" as 0', () => {
+      expect(parseGSheetsValue('0')).toBe(0)
+    })
+  })
+
   describe('plain string fallback', () => {
     it('returns plain text as string', () => {
       expect(parseGSheetsValue('hello')).toBe('hello')
