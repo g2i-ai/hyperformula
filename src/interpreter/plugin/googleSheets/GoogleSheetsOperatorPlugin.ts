@@ -291,7 +291,7 @@ export class GoogleSheetsOperatorPlugin extends FunctionPlugin implements Functi
       (val: number, lo: number, hi: number, loInc: boolean, hiInc: boolean) => {
         const cmpLoHi = this.arithmeticHelper.floatCmp(lo, hi)
         if (cmpLoHi > 0) {
-          return new CellError(ErrorType.NUM, ErrorMessage.NaN)
+          return new CellError(ErrorType.NUM, ErrorMessage.WrongOrder)
         }
         const cmpValLo = this.arithmeticHelper.floatCmp(val, lo)
         const cmpValHi = this.arithmeticHelper.floatCmp(val, hi)
