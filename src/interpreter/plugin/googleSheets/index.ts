@@ -5,6 +5,17 @@
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
+import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
+import {GoogleSheetsTextFunctionsPlugin} from './GoogleSheetsTextFunctionsPlugin'
+import {GoogleSheetsInfoPlugin} from './GoogleSheetsInfoPlugin'
+import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
+import {GoogleSheetsDatabasePlugin} from './GoogleSheetsDatabasePlugin'
+import {GoogleSheetsStatisticalPlugin} from './GoogleSheetsStatisticalPlugin'
+import {GoogleSheetsFinancialPlugin} from './GoogleSheetsFinancialPlugin'
+import {GoogleSheetsArrayPlugin} from './GoogleSheetsArrayPlugin'
+import {GoogleSheetsMiscPlugin} from './GoogleSheetsMiscPlugin'
+import {GoogleSheetsEngineeringFixesPlugin} from './GoogleSheetsEngineeringFixesPlugin'
+import {GoogleSheetsStatisticalFixesPlugin} from './GoogleSheetsStatisticalFixesPlugin'
 
 /**
  * Google Sheets override plugins.
@@ -16,6 +27,28 @@ import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsOperatorPlugin,
+  GoogleSheetsTextFunctionsPlugin,
+  GoogleSheetsInfoPlugin,
+  GoogleSheetsConversionPlugin,
+  GoogleSheetsDatabasePlugin,
+  GoogleSheetsStatisticalPlugin,
+  GoogleSheetsFinancialPlugin,
+  GoogleSheetsArrayPlugin,
+  GoogleSheetsMiscPlugin,
+  GoogleSheetsEngineeringFixesPlugin,
+  GoogleSheetsStatisticalFixesPlugin,
 ]
 
 export {GoogleSheetsTextPlugin}
+export {GoogleSheetsOperatorPlugin}
+export {GoogleSheetsTextFunctionsPlugin}
+export {GoogleSheetsInfoPlugin}
+export {GoogleSheetsConversionPlugin}
+export {GoogleSheetsDatabasePlugin}
+export {GoogleSheetsStatisticalPlugin}
+export {GoogleSheetsFinancialPlugin}
+export {GoogleSheetsArrayPlugin}
+export {GoogleSheetsMiscPlugin}
+export {GoogleSheetsEngineeringFixesPlugin}
+export {GoogleSheetsStatisticalFixesPlugin}
