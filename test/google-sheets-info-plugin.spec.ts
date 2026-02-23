@@ -117,6 +117,13 @@ describe('GoogleSheetsInfoPlugin', () => {
       hf.destroy()
     })
 
+    it('returns 2 for empty string literal (not empty cell)', () => {
+      const hf = buildWithPlugin([['=""', '=TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(2) // empty string is text, not empty
+      hf.destroy()
+    })
+
+
     it('returns 2 for text', () => {
       const hf = buildWithPlugin([['="hello"', '=TYPE(A1)']])
       expect(hf.getCellValue(adr('B1'))).toBe(2)
@@ -146,6 +153,25 @@ describe('GoogleSheetsInfoPlugin', () => {
       expect(hf.getCellValue(adr('B1'))).toBe(64)
       hf.destroy()
     })
+
+    it('returns value type for non-root spill cells (not 64)', () => {
+      // ={1,2,3} spills into A1, B1, C1 — only A1 is the root (array type 64)
+      // B1 and C1 are spill cells and should return the type of their individual value
+      const hf = buildWithPlugin([['={1,2,3}', null, null, '=TYPE(A1)', '=TYPE(B1)', '=TYPE(C1)']])
+      expect(hf.getCellValue(adr('D1'))).toBe(64) // A1 is root of array
+      expect(hf.getCellValue(adr('E1'))).toBe(1)  // B1 is spill cell with number value
+      expect(hf.getCellValue(adr('F1'))).toBe(1)  // C1 is spill cell with number value
+      hf.destroy()
+    })
+
+    it('returns text type for spill cell containing text', () => {
+      // ={"hello","world"} spills text values
+      const hf = buildWithPlugin([['={"hello","world"}', null, '=TYPE(A1)', '=TYPE(B1)']])
+      expect(hf.getCellValue(adr('C1'))).toBe(64) // A1 is root of array
+      expect(hf.getCellValue(adr('D1'))).toBe(2)  // B1 is spill cell with text value
+      hf.destroy()
+    })
+
 
     it('returns 1 for decimal number', () => {
       const hf = buildWithPlugin([[3.14, '=TYPE(A1)']])
