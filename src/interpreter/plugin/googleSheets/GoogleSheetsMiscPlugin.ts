@@ -69,10 +69,11 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
    * LOOKUP(search_key, search_range, [result_range])
    *
    * Performs binary search in a sorted range (ascending order).
-   * If 2 arguments: search_range is a 2-column array, search first column and return second.
+   * If 2 arguments: search_range is a 2D array; searches first column (or first
+   *   row if cols > rows) and returns from the last column (or last row).
    * If 3 arguments: search in search_range and return from result_range.
    *
-   * Supports both numeric and string keys by using typed value comparison.
+   * Supports both numeric and string keys.
    */
   public lookup(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     if (ast.args.length < 2 || ast.args.length > 3) {
@@ -90,8 +91,14 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
     }
 
     if (ast.args.length === 2) {
-      // 2-argument form: search_range is 2-column array
-      if (searchRange.width() < 2) {
+      // 2-argument form: search_range is 2D array
+      // If cols > rows: search first row, return last row
+      // Otherwise: search first column, return last column
+      const isHorizontal = searchRange.width() > searchRange.height()
+      if (!isHorizontal && searchRange.width() < 2) {
+        return new CellError(ErrorType.VALUE)
+      }
+      if (isHorizontal && searchRange.height() < 2) {
         return new CellError(ErrorType.VALUE)
       }
       return this.lookupTwoArgument(key, searchRange)
@@ -106,15 +113,12 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
   }
 
   /**
-   * Compares two scalar values for LOOKUP's "largest value <= key" semantics.
-   * Supports numeric and string comparison without forcing numeric coercion.
    * Returns true when cellVal <= key using natural type ordering.
+   * CellError values are treated as non-matching (search continues past them).
+   * EmptyValue is delegated to ArithmeticHelper which coerces it appropriately.
    */
   private lookupValueLessThanOrEqual(cellVal: InternalScalarValue, key: InternalScalarValue): boolean {
     if (cellVal instanceof CellError || key instanceof CellError) {
-      return false
-    }
-    if (cellVal === EmptyValue || key === EmptyValue) {
       return false
     }
     return this.arithmeticHelper.leq(cellVal, key)
@@ -126,12 +130,31 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
     }
 
     const values = searchRange.data
+    const isHorizontal = searchRange.width() > searchRange.height()
 
-    // Linear scan (ascending order assumed) for largest value <= key
+    if (isHorizontal) {
+      // Search across first row, return corresponding value from last row
+      const firstRow = values[0]
+      const lastRow = values[values.length - 1]
+      let bestColIndex = -1
+      for (let i = 0; i < firstRow.length; i++) {
+        if (this.lookupValueLessThanOrEqual(firstRow[i], key)) {
+          bestColIndex = i
+        } else {
+          break
+        }
+      }
+      if (bestColIndex === -1) {
+        return new CellError(ErrorType.NA)
+      }
+      return lastRow[bestColIndex] ?? EmptyValue
+    }
+
+    // Search down first column, return corresponding value from last column
+    const lastColIndex = values[0].length - 1
     let bestRowIndex = -1
     for (let i = 0; i < values.length; i++) {
-      const cellValue = values[i][0]
-      if (this.lookupValueLessThanOrEqual(cellValue, key)) {
+      if (this.lookupValueLessThanOrEqual(values[i][0], key)) {
         bestRowIndex = i
       } else {
         break
@@ -142,7 +165,6 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
       return new CellError(ErrorType.NA)
     }
 
-    const lastColIndex = values[0].length - 1
     return values[bestRowIndex][lastColIndex] ?? EmptyValue
   }
 
@@ -180,6 +202,11 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
    *
    * Returns metadata about a cell.
    * Supported info_type values: "contents", "address", "col", "row", "type"
+   *
+   * CELL("type") returns Google Sheets codes:
+   *   'b' — blank (empty cell)
+   *   'l' — label (text string)
+   *   'v' — value (number, boolean, date, or formula error)
    */
   public cell(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     if (ast.args.length !== 2) {
@@ -237,16 +264,7 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
           return 'b'
         }
         if (typeof cellValue === 'string') {
-          return 't'
-        }
-        if (typeof cellValue === 'boolean') {
           return 'l'
-        }
-        if (typeof cellValue === 'number' || isExtendedNumber(cellValue)) {
-          return 'v'
-        }
-        if (cellValue instanceof CellError) {
-          return 'e'
         }
         return 'v'
       }
@@ -294,8 +312,8 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
    * ISDATE(value)
    *
    * Returns TRUE if value is a date or datetime typed number, FALSE otherwise.
-   * Unlike Excel DATEVALUE, this does NOT parse strings — only typed date
-   * values (DateNumber, DateTimeNumber) return TRUE.
+   * Only typed date values (DateNumber, DateTimeNumber) return TRUE — strings
+   * are NOT parsed, matching Google Sheets behavior.
    */
   public isdate(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     if (ast.args.length !== 1) {

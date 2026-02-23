@@ -108,6 +108,40 @@ describe('GoogleSheetsMiscPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe('result2')
       hf.destroy()
     })
+
+    it('should search first row and return last row for horizontal arrays (cols > rows)', () => {
+      // When cols > rows, LOOKUP searches across first row and returns from last row
+      // Array has 2 rows and 3 cols: first row = [1,2,3], last row = ["a","b","c"]
+      const hf = HyperFormula.buildFromArray([
+        ['=LOOKUP(2, {1, 2, 3; "a", "b", "c"})'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe('b')
+      hf.destroy()
+    })
+
+    it('should return largest match from first row for horizontal array', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=LOOKUP(2.5, {1, 2, 3; "a", "b", "c"})'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      // 2.5 >= 2 but < 3, so returns value at position of 2 → "b"
+      expect(hf.getCellValue(adr('A1'))).toBe('b')
+      hf.destroy()
+    })
+
+    it('should skip empty cells in search range without breaking scan', () => {
+      // Empty cells should not cause premature break — they are coerced to 0/""
+      // Range: [empty, 2, 3] with results ["a","b","c"]; key=2 should find index 1
+      const hf = HyperFormula.buildFromArray([
+        [null, 2, 3],
+        ['a', 'b', 'c'],
+        ['=LOOKUP(2, A1:C1, A2:C2)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A3'))).toBe('b')
+      hf.destroy()
+    })
   })
 
   describe('CELL', () => {
@@ -156,12 +190,33 @@ describe('GoogleSheetsMiscPlugin', () => {
       hf.destroy()
     })
 
-    it('should return "t" for text cells with "type" info_type', () => {
+    it('should return "l" for text cells with "type" info_type', () => {
+      // Google Sheets uses 'l' (label) for text, not 't'
       const hf = HyperFormula.buildFromArray([
         ['hello', '=CELL("type", A1)'],
       ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
 
-      expect(hf.getCellValue(adr('B1'))).toBe('t')
+      expect(hf.getCellValue(adr('B1'))).toBe('l')
+      hf.destroy()
+    })
+
+    it('should return "v" for boolean cells with "type" info_type', () => {
+      // Google Sheets returns 'v' for booleans, not 'l'
+      const hf = HyperFormula.buildFromArray([
+        ['=TRUE()', '=CELL("type", A1)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('B1'))).toBe('v')
+      hf.destroy()
+    })
+
+    it('should return "v" for error cells with "type" info_type', () => {
+      // Google Sheets returns 'v' for errors, not 'e'
+      const hf = HyperFormula.buildFromArray([
+        ['=1/0', '=CELL("type", A1)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('B1'))).toBe('v')
       hf.destroy()
     })
 
