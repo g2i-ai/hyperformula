@@ -156,7 +156,7 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
     if (argNode.type === AstNodeType.CELL_REFERENCE) {
       const address = argNode.reference.toSimpleCellAddress(state.formulaAddress)
       const vertex = this.dependencyGraph.getCell(address)
-      if (vertex instanceof ArrayFormulaVertex) {
+      if (vertex instanceof ArrayFormulaVertex && vertex.isLeftCorner(address)) {
         return 64 // Array type
       }
     }
@@ -181,10 +181,6 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
     }
 
     if (typeof val === 'string') {
-      // Empty string is stored when buildFromArray receives '' — treat as empty (number type 1)
-      if (val === '') {
-        return 1
-      }
       return 2 // Text type
     }
 

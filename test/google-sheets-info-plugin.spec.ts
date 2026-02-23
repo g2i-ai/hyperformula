@@ -112,7 +112,7 @@ describe('GoogleSheetsInfoPlugin', () => {
     })
 
     it('returns 1 for empty cell', () => {
-      const hf = buildWithPlugin([['', '=TYPE(A1)']])
+      const hf = buildWithPlugin([[null, '=TYPE(A1)']])
       expect(hf.getCellValue(adr('B1'))).toBe(1)
       hf.destroy()
     })
