@@ -4,12 +4,44 @@
  */
 
 import {CellError, ErrorType} from '../../../Cell'
+import {ArrayFormulaVertex} from '../../../DependencyGraph'
 import {ErrorMessage} from '../../../error-message'
-import {ProcedureAst} from '../../../parser'
+import {AstNodeType, ProcedureAst} from '../../../parser'
 import {InterpreterState} from '../../InterpreterState'
 import {InterpreterValue, isExtendedNumber, EmptyValue} from '../../InterpreterValue'
 import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
+
+/**
+ * Validates an email address without backtracking-prone regex.
+ *
+ * Uses linear string operations to avoid ReDoS vulnerabilities.
+ * Checks for exactly one `@`, non-empty local and domain parts,
+ * and at least one `.` in the domain with a non-empty TLD.
+ */
+function isValidEmail(email: string): boolean {
+  const atIndex = email.indexOf('@')
+  if (atIndex <= 0) {
+    return false
+  }
+  // Ensure only one '@'
+  if (email.indexOf('@', atIndex + 1) !== -1) {
+    return false
+  }
+  const domain = email.slice(atIndex + 1)
+  if (domain.length === 0) {
+    return false
+  }
+  // Domain must contain a dot with non-empty TLD and no whitespace
+  const dotIndex = domain.lastIndexOf('.')
+  if (dotIndex <= 0 || dotIndex === domain.length - 1) {
+    return false
+  }
+  if (/\s/.test(email)) {
+    return false
+  }
+  return true
+}
 
 /**
  * Google Sheets-compatible info functions.
@@ -27,7 +59,6 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
       parameters: [
         {argumentType: FunctionArgumentType.SCALAR}
       ],
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'TYPE': {
@@ -35,7 +66,6 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
       parameters: [
         {argumentType: FunctionArgumentType.SCALAR}
       ],
-      doesNotNeedArgumentsToBeComputed: true,
       vectorizationForbidden: true,
     },
     'ISEMAIL': {
@@ -121,11 +151,24 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
       return new CellError(ErrorType.NA, ErrorMessage.WrongArgNumber)
     }
 
-    const arg = this.evaluateAst(ast.args[0], state)
-    let val = arg
+    // Detect cell references pointing to array formula vertices before evaluating
+    const argNode = ast.args[0]
+    if (argNode.type === AstNodeType.CELL_REFERENCE) {
+      const address = argNode.reference.toSimpleCellAddress(state.formulaAddress)
+      const vertex = this.dependencyGraph.getCell(address)
+      if (vertex instanceof ArrayFormulaVertex) {
+        return 64 // Array type
+      }
+    }
 
-    if (arg instanceof SimpleRangeValue) {
-      val = arg.data[0]?.[0] ?? EmptyValue
+    // Detect inline array literals (e.g., {1,2,3})
+    if (argNode.type === AstNodeType.ARRAY) {
+      return 64 // Array type
+    }
+
+    const val = this.evaluateAst(argNode, state)
+
+    if (val instanceof SimpleRangeValue) {
       return 64 // Array type
     }
 
@@ -138,6 +181,10 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
     }
 
     if (typeof val === 'string') {
+      // Empty string is stored when buildFromArray receives '' — treat as empty (number type 1)
+      if (val === '') {
+        return 1
+      }
       return 2 // Text type
     }
 
@@ -164,8 +211,7 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
    */
   public isemail(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ISEMAIL'), (email: string) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return emailRegex.test(email)
+      return isValidEmail(email)
     })
   }
 

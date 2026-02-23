@@ -415,6 +415,10 @@ const dictionary: RawTranslationPackage = {
     'CEILING.PRECISE': 'CEILING.PRECISE',
     'FLOOR.PRECISE': 'FLOOR.PRECISE',
     'ISO.CEILING': 'ISO.CEILING',
+    'ERROR.TYPE': 'ERROR.TYPE',
+    TYPE: 'TYPE',
+    ISEMAIL: 'ISEMAIL',
+    ISURL: 'ISURL',
   },
   langCode: 'enGB',
   ui: {

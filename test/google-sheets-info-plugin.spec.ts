@@ -8,6 +8,49 @@ describe('GoogleSheetsInfoPlugin', () => {
       licenseKey: 'gpl-v3',
     })
 
+  describe('dependency tracking', () => {
+    it('ERROR.TYPE recalculates when referenced cell changes from error to non-error', () => {
+      const hf = buildWithPlugin([['=1/0', '=ERROR.TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(2) // DIV/0 = 2
+      hf.setCellContents(adr('A1'), [[42]])
+      const result = hf.getCellValue(adr('B1')) as DetailedCellError
+      expect(result.type).toBe('NA') // non-error → #N/A
+      hf.destroy()
+    })
+
+    it('ERROR.TYPE recalculates when referenced cell changes error type', () => {
+      const hf = buildWithPlugin([['=1/0', '=ERROR.TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(2) // DIV/0 = 2
+      hf.setCellContents(adr('A1'), [['=NA()']])
+      expect(hf.getCellValue(adr('B1'))).toBe(7) // NA = 7
+      hf.destroy()
+    })
+
+    it('TYPE recalculates when referenced cell changes from number to text', () => {
+      const hf = buildWithPlugin([[42, '=TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(1) // number
+      hf.setCellContents(adr('A1'), [['hello']])
+      expect(hf.getCellValue(adr('B1'))).toBe(2) // text
+      hf.destroy()
+    })
+
+    it('TYPE recalculates when referenced cell changes from number to boolean', () => {
+      const hf = buildWithPlugin([[42, '=TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(1) // number
+      hf.setCellContents(adr('A1'), [['=TRUE()']])
+      expect(hf.getCellValue(adr('B1'))).toBe(4) // boolean
+      hf.destroy()
+    })
+
+    it('TYPE recalculates when referenced cell changes from number to error', () => {
+      const hf = buildWithPlugin([[42, '=TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(1) // number
+      hf.setCellContents(adr('A1'), [['=1/0']])
+      expect(hf.getCellValue(adr('B1'))).toBe(16) // error
+      hf.destroy()
+    })
+  })
+
   describe('ERROR.TYPE', () => {
     it('returns 2 for DIV/0 error', () => {
       const hf = buildWithPlugin([['=1/0', '=ERROR.TYPE(A1)']])
