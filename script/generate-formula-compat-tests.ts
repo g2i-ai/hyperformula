@@ -236,10 +236,7 @@ const FORMULA_REWRITES: Record<string, FormulaRewrite> = {
   COUNTIFS: {
     formula: `COUNTIFS(${INLINE_DATA.numericMixed}, ">20", ${INLINE_DATA.numericMixed2}, "<800")`,
   },
-  AVERAGEIFS: {
-    formula: `AVERAGEIFS(${INLINE_DATA.numericMixed}, ${INLINE_DATA.numericMixed}, ">20", ${INLINE_DATA.numericMixed2}, "<800")`,
-  },
-  // SUMIFS, MAXIFS, MINIFS → moved to CELL_REF_FORMULAS (GSheets needs real ranges)
+  // AVERAGEIFS, SUMIFS, MAXIFS, MINIFS → moved to CELL_REF_FORMULAS (GSheets needs real ranges)
 
   // ── Statistical tests (two equal-length ranges) ─────────────────────
   "CHISQ.TEST": {
@@ -368,19 +365,8 @@ const FORMULA_REWRITES: Record<string, FormulaRewrite> = {
 
   // SUBTOTAL → moved to CELL_REF_FORMULAS (GSheets needs real ranges)
 
-  // ── NETWORKDAYS / WORKDAY ───────────────────────────────────────────
-  NETWORKDAYS: {
-    formula: `NETWORKDAYS("7/16/1969", "7/24/1969", ${INLINE_DATA.holidays})`,
-  },
-  "NETWORKDAYS.INTL": {
-    formula: `NETWORKDAYS.INTL("7/16/1969", "7/24/1969", 1, ${INLINE_DATA.holidays})`,
-  },
-  WORKDAY: {
-    formula: `WORKDAY("7/20/1969", 4, ${INLINE_DATA.holidays})`,
-  },
-  "WORKDAY.INTL": {
-    formula: `WORKDAY.INTL("7/21/1969", 4, 1, ${INLINE_DATA.holidays})`,
-  },
+  // NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL → moved to CELL_REF_FORMULAS
+  // (GSheets returns #VALUE! when holiday arrays are passed as inline arrays)
 
   // ── GCD/LCM ─────────────────────────────────────────────────────────
   GCD: { formula: `GCD(${INLINE_DATA.gcdSet}, 6)` },
@@ -629,6 +615,13 @@ const SPECIAL_CELL_DATA: Record<string, number | string> = {
   B772: "hello",
 };
 
+// Holiday dates for NETWORKDAYS/WORKDAY (rows 781-782)
+// GSheets requires real cell ranges for the holidays parameter; inline arrays return #VALUE!
+const HOLIDAY_CELL_DATA: Record<string, string> = {
+  A781: "7/20/1969",
+  A782: "7/21/1969",
+};
+
 /**
  * Formulas that need real cell ranges in the CSV (row 700+).
  * Each entry provides the formula referencing fixed cell positions
@@ -654,6 +647,10 @@ const CELL_REF_FORMULAS: Record<string, FormulaRewrite> = {
   },
   MINIFS: {
     formula: `MINIFS(A701:A710, A701:A710, "<100", A701:A710, ">15")`,
+    cellData: { ...NUMERIC_CELL_DATA },
+  },
+  AVERAGEIFS: {
+    formula: `AVERAGEIFS(C701:C710, D701:D710, ">20", C701:C710, "<800")`,
     cellData: { ...NUMERIC_CELL_DATA },
   },
   SUBTOTAL: {
@@ -769,6 +766,25 @@ const CELL_REF_FORMULAS: Record<string, FormulaRewrite> = {
     formula: `FORMULATEXT(B771)`,
     cellData: { ...SPECIAL_CELL_DATA },
     note: "B771 contains =1+1",
+  },
+
+  // ── NETWORKDAYS / WORKDAY with cell-ref holidays (rows 781-782) ───
+  // GSheets returns #VALUE! when the holidays parameter is an inline array.
+  NETWORKDAYS: {
+    formula: `NETWORKDAYS("7/16/1969", "7/24/1969", A781:A782)`,
+    cellData: { ...HOLIDAY_CELL_DATA },
+  },
+  "NETWORKDAYS.INTL": {
+    formula: `NETWORKDAYS.INTL("7/16/1969", "7/24/1969", 1, A781:A782)`,
+    cellData: { ...HOLIDAY_CELL_DATA },
+  },
+  WORKDAY: {
+    formula: `WORKDAY("7/16/1969", 4, A781:A782)`,
+    cellData: { ...HOLIDAY_CELL_DATA },
+  },
+  "WORKDAY.INTL": {
+    formula: `WORKDAY.INTL("7/16/1969", 4, 1, A781:A782)`,
+    cellData: { ...HOLIDAY_CELL_DATA },
   },
 };
 
