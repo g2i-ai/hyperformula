@@ -4,6 +4,7 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
 import {GoogleSheetsInfoPlugin} from './GoogleSheetsInfoPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
 import {GoogleSheetsTextFunctionsPlugin} from './GoogleSheetsTextFunctionsPlugin'
@@ -18,10 +19,11 @@ import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
  * the overridden function implementations via Map.set.
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
+  GoogleSheetsConversionPlugin,
   GoogleSheetsInfoPlugin,
   GoogleSheetsTextPlugin,
   GoogleSheetsTextFunctionsPlugin,
   GoogleSheetsOperatorPlugin,
 ]
 
-export {GoogleSheetsInfoPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
+export {GoogleSheetsConversionPlugin, GoogleSheetsInfoPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
