@@ -182,6 +182,37 @@ describe('Thousands separator - config validation', () => {
   })
 })
 
+describe('Cross-instance isolation - singleton state corruption', () => {
+  it('GSheets instance correctly parses thousands after a default instance reconfigures the shared matcher', () => {
+    // Create a GSheets instance first, then a default-config instance.
+    // The default instance's buildLexerConfig call reconfigures the shared singleton
+    // (thousandSeparator → '').  Now mutate hfGs — setCellContents re-lexes the
+    // formula using the shared singleton, so if the bug is present the comma in
+    // "1,000" is treated as an arg separator and the result is wrong.
+    const hfGs = HyperFormula.buildFromArray([['']], gsConfig)
+    HyperFormula.buildFromArray([['']], defaultConfig).destroy()
+
+    hfGs.setCellContents(adr('A1'), '=1,000')
+    expect(hfGs.getCellValue(adr('A1'))).toBe(1000)
+
+    hfGs.destroy()
+  })
+
+  it('default instance correctly treats comma as arg separator after a GSheets instance reconfigures the shared matcher', () => {
+    // Create a default instance first, then a GSheets instance.
+    // The GSheets buildLexerConfig sets thousandSeparator → ',', which would cause
+    // the default instance's lexer (still bound to the shared singleton) to
+    // misinterpret "1,000" as a thousands-grouped number instead of two args.
+    const hfDefault = HyperFormula.buildFromArray([['']], defaultConfig)
+    HyperFormula.buildFromArray([['']], gsConfig).destroy()
+
+    hfDefault.setCellContents(adr('A1'), '=SUM(1,000)')
+    expect(hfDefault.getCellValue(adr('A1'))).toBe(1) // SUM(1, 0) = 1
+
+    hfDefault.destroy()
+  })
+})
+
 describe('Thousands separator - GSheets preset auto-config', () => {
   it('sets thousandSeparator to comma in GSheets mode', () => {
     const config = new Config({ licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' })

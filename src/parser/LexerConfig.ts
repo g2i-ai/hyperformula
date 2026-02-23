@@ -66,14 +66,6 @@ export const NamedExpression = createToken({
   line_breaks: false,
 })
 
-const numberLiteralMatcher = new NumberLiteralMatcher()
-export const NumberLiteral = createToken({
-  name: 'NumberLiteral',
-  pattern: numberLiteralMatcher.match.bind(numberLiteralMatcher),
-  start_chars_hint: numberLiteralMatcher.POSSIBLE_START_CHARACTERS,
-  line_breaks: false,
-})
-
 export interface LexerConfig {
   ArgSeparator: TokenType,
   NumberLiteral: TokenType,
@@ -94,7 +86,15 @@ export interface LexerConfig {
  * Builds the configuration object for the lexer
  */
 export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
+  const numberLiteralMatcher = new NumberLiteralMatcher()
   numberLiteralMatcher.configure(config.decimalSeparator, config.thousandSeparator)
+  const NumberLiteral = createToken({
+    name: 'NumberLiteral',
+    pattern: numberLiteralMatcher.match.bind(numberLiteralMatcher),
+    start_chars_hint: numberLiteralMatcher.POSSIBLE_START_CHARACTERS,
+    line_breaks: false,
+  })
+
   const offsetProcedureNameLiteral = config.translationPackage.getFunctionTranslation('OFFSET')
   const errorMapping = config.errorMapping
   const functionMapping = config.translationPackage.buildFunctionMapping()
