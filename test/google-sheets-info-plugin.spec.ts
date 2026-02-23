@@ -82,6 +82,13 @@ describe('GoogleSheetsInfoPlugin', () => {
       hf.destroy()
     })
 
+    it('returns 8 for generic #ERROR! (parse error)', () => {
+      // A parse error like "=+" produces ErrorType.ERROR which maps to #ERROR! in Google Sheets
+      const hf = buildWithPlugin([['=+', '=ERROR.TYPE(A1)']])
+      expect(hf.getCellValue(adr('B1'))).toBe(8)
+      hf.destroy()
+    })
+
     it('returns #N/A for non-error value', () => {
       const hf = buildWithPlugin([['=42', '=ERROR.TYPE(A1)']])
       const result = hf.getCellValue(adr('B1')) as DetailedCellError
