@@ -539,5 +539,44 @@ describe('GoogleSheetsOperatorPlugin', () => {
       expect(result.type).toBe('NUM')
       hf.destroy()
     })
+
+    // Epsilon-awareness: ISBETWEEN must use floatCmp (not raw >/>=/</<= operators)
+    // so that floating-point boundary values are treated consistently with LTE/GTE.
+    it('should return true when value is epsilon-equal to upper bound (inclusive)', () => {
+      // 0.1 + 0.2 = 0.30000000000000004 in IEEE 754, which is epsilon-equal to 0.3.
+      // Raw `val <= hi` would be false, but floatCmp treats them as equal.
+      const hf = buildWithPlugin([['=ISBETWEEN(ADD(0.1,0.2),0,0.3,TRUE,TRUE)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    it('should return true when value is epsilon-equal to lower bound (inclusive)', () => {
+      // Symmetric: lo = 0.1+0.2 = 0.30000000000000004, val = 0.3.
+      // Raw `val >= lo` would be false, but floatCmp treats them as equal.
+      const hf = buildWithPlugin([['=ISBETWEEN(0.3,ADD(0.1,0.2),1,TRUE,TRUE)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    it('should return false when value is epsilon-equal to exclusive upper bound', () => {
+      // When hiInc=FALSE, a value epsilon-equal to hi should NOT be inside the range.
+      const hf = buildWithPlugin([['=ISBETWEEN(ADD(0.1,0.2),0,0.3,TRUE,FALSE)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    it('should return false when value is epsilon-equal to exclusive lower bound', () => {
+      // When loInc=FALSE, a value epsilon-equal to lo should NOT be inside the range.
+      const hf = buildWithPlugin([['=ISBETWEEN(0.3,ADD(0.1,0.2),1,FALSE,TRUE)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    it('should not return NUM error when lo and hi are epsilon-equal (lo <= hi)', () => {
+      // floatCmp(lo, hi) === 0 when they are epsilon-equal, so lo > hi check should not fire.
+      const hf = buildWithPlugin([['=ISBETWEEN(0.3,ADD(0.1,0.2),0.3,TRUE,TRUE)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
   })
 })
