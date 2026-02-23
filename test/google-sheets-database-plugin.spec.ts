@@ -636,4 +636,126 @@ describe('GoogleSheetsDatabasePlugin', () => {
     expect(hf.getCellValue(adr('A11'))).toBe(0)
     hf.destroy()
   })
+
+  // ---------------------------------------------------------------------------
+  // Reactivity: database functions must recalculate when source data changes
+  // ---------------------------------------------------------------------------
+
+  it('DSUM recalculates when a value in the database range changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Initial: Alice=90000, Bob=80000, Dave=95000 => 265000
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    // Change Alice's salary from 90000 to 100000
+    hf.setCellContents(adr('C2'), 100000)
+    // Now: 100000 + 80000 + 95000 = 275000
+    expect(hf.getCellValue(adr('A11'))).toBe(275000)
+    hf.destroy()
+  })
+
+  it('DSUM recalculates when a criteria value changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    // Change criteria from Engineering to Sales
+    hf.setCellContents(adr('A9'), 'Sales')
+    // Carol=85000, Eve=70000 => 155000
+    expect(hf.getCellValue(adr('A11'))).toBe(155000)
+    hf.destroy()
+  })
+
+  it('DCOUNT recalculates when database data changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(3)
+    // Move Bob from Engineering to Sales
+    hf.setCellContents(adr('B3'), 'Sales')
+    expect(hf.getCellValue(adr('A11'))).toBe(2)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // parseCriterion: empty string after operator must not be parsed as zero
+  // ---------------------------------------------------------------------------
+
+  it('criterion "=" with no value after operator does not match numeric zero', () => {
+    // "=" with an empty value string must not be coerced to 0 and match zeros
+    const data = [
+      ['Value'],          // header
+      [0],                // row 2: numeric zero
+      [42],               // row 3: non-zero number
+      spacer[0],
+      ['Value'],          // criteria header (row 5)
+      ['='],              // criteria: "=" with no value after operator (row 6)
+      ['=DCOUNT(A1:A3, "Value", A5:A6)'],  // row 7
+    ]
+    const hf = buildWithPlugin(data)
+    // "=" must not be misread as "=0"; zero cell must NOT match
+    const result = hf.getCellValue(adr('A7'))
+    expect(result).not.toBe(1)  // Must not match only the zero cell
+    expect(result).not.toBe(2)  // Must not match both numeric cells as if criterion were =0 or blank-match-all
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DMAX / DMIN: reduce-based pattern (safe for large result sets)
+  // ---------------------------------------------------------------------------
+
+  it('DMAX handles a large number of matching rows without stack overflow', () => {
+    // Build a 1000-row database all in the same department
+    const headers = [['Value', 'Dept']]
+    const rows: (number | string)[][] = Array.from({length: 1000}, (_, i) => [i + 1, 'X'])
+    const largeDb = [...headers, ...rows]
+    const criteriaRows: (string | null)[][] = [
+      [null],               // spacer
+      ['Dept'],             // criteria header
+      ['X'],                // criteria value
+      ['=DMAX(A1:B1001, "Value", A1003:A1004)'],
+    ]
+    const fullData = [...largeDb, ...criteriaRows]
+    const hf = buildWithPlugin(fullData)
+    // Row 1003 = criteria header "Dept", row 1004 = "X"
+    // Formula is in row 1005
+    const result = hf.getCellValue(adr('A1005'))
+    expect(result).toBe(1000)
+    hf.destroy()
+  })
+
+  it('DMIN handles a large number of matching rows without stack overflow', () => {
+    const headers = [['Value', 'Dept']]
+    const rows: (number | string)[][] = Array.from({length: 1000}, (_, i) => [i + 1, 'X'])
+    const largeDb = [...headers, ...rows]
+    const criteriaRows: (string | null)[][] = [
+      [null],
+      ['Dept'],
+      ['X'],
+      ['=DMIN(A1:B1001, "Value", A1003:A1004)'],
+    ]
+    const fullData = [...largeDb, ...criteriaRows]
+    const hf = buildWithPlugin(fullData)
+    const result = hf.getCellValue(adr('A1005'))
+    expect(result).toBe(1)
+    hf.destroy()
+  })
 })
