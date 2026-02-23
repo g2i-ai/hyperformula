@@ -17,6 +17,7 @@ import {
 } from './parser-consts'
 import {CellReferenceMatcher} from './CellReferenceMatcher'
 import {NamedExpressionMatcher} from './NamedExpressionMatcher'
+import {NumberLiteralMatcher} from './NumberLiteralMatcher'
 
 export const AdditionOp = createToken({ name: 'AdditionOp', pattern: Lexer.NA })
 export const PlusOp = createToken({name: 'PlusOp', pattern: /\+/, categories: AdditionOp})
@@ -79,6 +80,7 @@ export interface LexerConfig {
   errorMapping: Record<string, ErrorType>,
   functionMapping: Record<string, string>,
   decimalSeparator: '.' | ',',
+  thousandSeparator: '' | ',' | ' ' | '.',
   ArrayColSeparator: TokenType,
   ArrayRowSeparator: TokenType,
   WhiteSpace: TokenType,
@@ -97,6 +99,15 @@ export interface LexerConfig {
  * lexers.
  */
 export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
+  const numberLiteralMatcher = new NumberLiteralMatcher()
+  numberLiteralMatcher.configure(config.decimalSeparator, config.thousandSeparator)
+  const NumberLiteral = createToken({
+    name: 'NumberLiteral',
+    pattern: numberLiteralMatcher.match.bind(numberLiteralMatcher),
+    start_chars_hint: numberLiteralMatcher.POSSIBLE_START_CHARACTERS,
+    line_breaks: false,
+  })
+
   const offsetProcedureNameLiteral = config.translationPackage.getFunctionTranslation('OFFSET')
   const errorMapping = config.errorMapping
   const functionMapping = config.translationPackage.buildFunctionMapping()
@@ -105,7 +116,6 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
   const WhiteSpace = createToken({ name: 'WhiteSpace', pattern: whitespaceTokenRegexp })
   const ArrayRowSeparator = createToken({name: 'ArrayRowSep', pattern: config.arrayRowSeparator})
   const ArrayColSeparator = createToken({name: 'ArrayColSep', pattern: config.arrayColumnSeparator})
-  const NumberLiteral = createToken({ name: 'NumberLiteral', pattern: new RegExp(`(([${config.decimalSeparator}]\\d+)|(\\d+([${config.decimalSeparator}]\\d*)?))(e[+-]?\\d+)?`) })
   const OffsetProcedureName = createToken({ name: 'OffsetProcedureName', pattern: new RegExp(offsetProcedureNameLiteral, 'i') })
 
   // Create a new CellReferenceMatcher per buildLexerConfig call so each HyperFormula
@@ -184,6 +194,7 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     errorMapping,
     functionMapping,
     decimalSeparator: config.decimalSeparator,
+    thousandSeparator: config.thousandSeparator,
     maxColumns: config.maxColumns,
     maxRows: config.maxRows,
     compatibilityMode: config.compatibilityMode,

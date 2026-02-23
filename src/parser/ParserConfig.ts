@@ -9,6 +9,7 @@ import {TranslationPackage} from '../i18n'
 export interface ParserConfig {
   functionArgSeparator: string,
   decimalSeparator: '.' | ',',
+  thousandSeparator: '' | ',' | ' ' | '.',
   arrayColumnSeparator: ',' | ';',
   arrayRowSeparator: ';' | '|',
   ignoreWhiteSpace: 'standard' | 'any',

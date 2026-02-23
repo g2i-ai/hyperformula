@@ -24,12 +24,13 @@ import {Maybe} from './Maybe'
 import {ParserConfig} from './parser/ParserConfig'
 import {ConfigParams, ConfigParamsList} from './ConfigParams'
 
-type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol'>
+type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol' | 'thousandSeparator'>
 
 const googleSheetsDefaults: GoogleSheetsDefaults = {
   dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
   localeLang: 'en-US',
   currencySymbol: ['$', 'USD'],
+  thousandSeparator: ',',
 }
 
 const privatePool: WeakMap<Config, { licenseKeyValidityState: LicenseKeyValidityState }> = new WeakMap()
@@ -278,6 +279,9 @@ export class Config implements ConfigParams, ParserConfig {
       if (currencySymbol === undefined) {
         this.currencySymbol = [...googleSheetsDefaults.currencySymbol]
       }
+      if (thousandSeparator === undefined) {
+        this.thousandSeparator = googleSheetsDefaults.thousandSeparator
+      }
     }
 
     privatePool.set(this, {
@@ -287,8 +291,14 @@ export class Config implements ConfigParams, ParserConfig {
     configCheckIfParametersNotInConflict(
       {value: this.decimalSeparator, name: 'decimalSeparator'},
       {value: this.functionArgSeparator, name: 'functionArgSeparator'},
-      {value: this.thousandSeparator, name: 'thousandSeparator'},
     )
+
+    if (this.thousandSeparator !== '') {
+      configCheckIfParametersNotInConflict(
+        {value: this.decimalSeparator, name: 'decimalSeparator'},
+        {value: this.thousandSeparator, name: 'thousandSeparator'},
+      )
+    }
 
     configCheckIfParametersNotInConflict(
       {value: this.arrayRowSeparator, name: 'arrayRowSeparator'},
