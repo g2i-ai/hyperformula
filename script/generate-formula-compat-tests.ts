@@ -175,9 +175,10 @@ const FORMULA_REWRITES: Record<string, FormulaRewrite> = {
   MAXA: { formula: `MAXA(${INLINE_DATA.numeric}, 42)` },
   MIN: { formula: `MIN(${INLINE_DATA.numeric}, 5)` },
   MINA: { formula: `MINA(${INLINE_DATA.numeric}, 5)` },
-  MODE: { formula: `MODE(${INLINE_DATA.numeric}, 5)` },
-  "MODE.MULT": { formula: `MODE.MULT(${INLINE_DATA.numeric}, 5)` },
-  "MODE.SNGL": { formula: `MODE.SNGL(${INLINE_DATA.numeric}, 5)` },
+  // Use 10 (already in numeric) to create a duplicate so MODE returns a value instead of #N/A
+  MODE: { formula: `MODE(${INLINE_DATA.numeric}, 10)` },
+  "MODE.MULT": { formula: `MODE.MULT(${INLINE_DATA.numeric}, 10)` },
+  "MODE.SNGL": { formula: `MODE.SNGL(${INLINE_DATA.numeric}, 10)` },
   LARGE: { formula: `LARGE(${INLINE_DATA.numeric}, 4)` },
   SMALL: { formula: `SMALL(${INLINE_DATA.numeric}, 4)` },
   "Z.TEST": { formula: `Z.TEST(${INLINE_DATA.numeric}, 95, 1.2)` },

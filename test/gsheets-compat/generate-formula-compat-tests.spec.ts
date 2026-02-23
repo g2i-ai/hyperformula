@@ -126,6 +126,32 @@ describe('generate-formula-compat-tests output', () => {
   })
 })
 
+describe('MODE / MODE.MULT / MODE.SNGL', () => {
+  let data: {functions: Record<string, {tests: Array<{formula: string}>}>}
+
+  beforeAll(() => {
+    data = JSON.parse(readFileSync(JSON_PATH, 'utf-8'))
+  })
+
+  const modeFunctions = ['MODE', 'MODE.MULT', 'MODE.SNGL']
+
+  modeFunctions.forEach((fn) => {
+    it(`${fn} formula produces a valid mode (not all-unique data)`, () => {
+      const entry = data.functions[fn]
+      expect(entry).toBeDefined()
+      const formula = entry!.tests[0]!.formula
+      // Extract all numeric values from the inline array in the formula
+      // by finding sequences of digits (not inside function names)
+      const numbers = formula.match(/\b\d+\b/g)?.map(Number) ?? []
+      const counts: Record<number, number> = {}
+      numbers.forEach((n) => { counts[n] = (counts[n] || 0) + 1 })
+      const maxCount = Math.max(...Object.values(counts))
+      // At least one value must appear more than once for MODE to return a valid result
+      expect(maxCount).toBeGreaterThan(1)
+    })
+  })
+})
+
 describe('generate-formula-test-csv output', () => {
   let csvLines: string[]
 

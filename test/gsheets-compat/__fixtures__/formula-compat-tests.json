@@ -3624,7 +3624,7 @@
       "category": "Statistical",
       "tests": [
         {
-          "formula": "MODE({10;20;30;40;50;15;25;35;45;55}, 5)"
+          "formula": "MODE({10;20;30;40;50;15;25;35;45;55}, 10)"
         }
       ]
     },
@@ -3633,7 +3633,7 @@
       "category": "Statistical",
       "tests": [
         {
-          "formula": "MODE.MULT({10;20;30;40;50;15;25;35;45;55}, 5)"
+          "formula": "MODE.MULT({10;20;30;40;50;15;25;35;45;55}, 10)"
         }
       ]
     },
@@ -3642,7 +3642,7 @@
       "category": "Statistical",
       "tests": [
         {
-          "formula": "MODE.SNGL({10;20;30;40;50;15;25;35;45;55}, 5)"
+          "formula": "MODE.SNGL({10;20;30;40;50;15;25;35;45;55}, 10)"
         }
       ]
     },
