@@ -561,7 +561,8 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const wrapArg = ast.args[1]
     if (wrapArg.type !== AstNodeType.NUMBER) {
       const maxWidth = Math.max(1, Math.min(this.config.maxColumns, totalElements))
-      return new ArraySize(maxWidth, this.config.maxRows)
+      const maxHeight = Math.max(1, Math.min(this.config.maxRows, totalElements))
+      return new ArraySize(maxWidth, maxHeight)
     }
     const wrapCount = wrapArg.value
     if (wrapCount < 1) return ArraySize.error()
@@ -601,8 +602,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const totalElements = rangeSize.width * rangeSize.height
     const wrapArg = ast.args[1]
     if (wrapArg.type !== AstNodeType.NUMBER) {
+      const maxWidth = Math.max(1, Math.min(this.config.maxColumns, totalElements))
       const maxHeight = Math.max(1, Math.min(this.config.maxRows, totalElements))
-      return new ArraySize(this.config.maxColumns, maxHeight)
+      return new ArraySize(maxWidth, maxHeight)
     }
     const wrapCount = wrapArg.value
     if (wrapCount < 1) return ArraySize.error()

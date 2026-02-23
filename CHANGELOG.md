@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed `WRAPCOLS`/`WRAPROWS` spill-size prediction for non-literal `wrap_count` values to avoid underestimating dynamic array dimensions.
 - Fixed `LINEST`/`LOGEST` no-intercept (`const=FALSE`) statistics to use uncentered sums of squares for `R²` computation.
 - Fixed `UNIQUE` row identity for Google Sheets array mode to use deterministic, value-aware scalar serialization instead of `JSON.stringify` on runtime objects.
+- Fixed non-literal `wrap_count` spill-size bounds for `WRAPCOLS`/`WRAPROWS` to cap both predicted dimensions by source `totalElements`.
 ## [3.2.0] - 2026-02-19
 
 ### Added

@@ -345,6 +345,7 @@ describe('WRAPCOLS', () => {
 
     expect(hf.isCellPartOfArray(adr('A2'))).toBe(true)
     expect(hf.isCellPartOfArray(adr('B2'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('A4'))).toBe(false)
     hf.destroy()
   })
 })
@@ -396,6 +397,7 @@ describe('WRAPROWS', () => {
 
     expect(hf.isCellPartOfArray(adr('B1'))).toBe(true)
     expect(hf.isCellPartOfArray(adr('B2'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('D1'))).toBe(false)
     hf.destroy()
   })
 })
