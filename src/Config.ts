@@ -298,12 +298,6 @@ export class Config implements ConfigParams, ParserConfig {
         {value: this.decimalSeparator, name: 'decimalSeparator'},
         {value: this.thousandSeparator, name: 'thousandSeparator'},
       )
-      if (this.thousandSeparator !== this.functionArgSeparator) {
-        configCheckIfParametersNotInConflict(
-          {value: this.functionArgSeparator, name: 'functionArgSeparator'},
-          {value: this.thousandSeparator, name: 'thousandSeparator'},
-        )
-      }
     }
 
     configCheckIfParametersNotInConflict(
