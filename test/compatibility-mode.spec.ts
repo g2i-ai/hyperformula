@@ -67,6 +67,7 @@ describe('Google Sheets config preset', () => {
     expect(mergedConfig.dateFormats).toEqual(['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'])
     expect(mergedConfig.localeLang).toBe('en-US')
     expect(mergedConfig.currencySymbol).toEqual(['$', 'USD'])
+    expect(mergedConfig.thousandSeparator).toBe(',')
   })
 
   it('should restore default preset when switching back via mergeConfig', () => {
@@ -76,6 +77,21 @@ describe('Google Sheets config preset', () => {
     expect(mergedConfig.dateFormats).toEqual(['DD/MM/YYYY', 'DD/MM/YY'])
     expect(mergedConfig.localeLang).toBe('en')
     expect(mergedConfig.currencySymbol).toEqual(['$'])
+    expect(mergedConfig.thousandSeparator).toBe('')
+  })
+
+  it('should apply explicit thousandSeparator when switching to GSheets mode', () => {
+    const config = new Config({ licenseKey: 'gpl-v3' })
+    const mergedConfig = config.mergeConfig({ compatibilityMode: 'googleSheets', thousandSeparator: '' })
+
+    expect(mergedConfig.thousandSeparator).toBe('')
+  })
+
+  it('should apply explicit thousandSeparator when switching back to default mode', () => {
+    const config = new Config({ licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' })
+    const mergedConfig = config.mergeConfig({ compatibilityMode: 'default', thousandSeparator: ' ' })
+
+    expect(mergedConfig.thousandSeparator).toBe(' ')
   })
 
   it('should apply GSheets defaults after switching mode with updateConfig', () => {

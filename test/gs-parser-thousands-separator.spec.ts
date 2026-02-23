@@ -168,9 +168,10 @@ describe('Thousands separator - default mode', () => {
 })
 
 describe('Thousands separator - config validation', () => {
-  it('allows thousandSeparator to equal functionArgSeparator', () => {
+  it('allows thousandSeparator to equal functionArgSeparator in GSheets mode', () => {
     expect(() => new Config({
       licenseKey: 'gpl-v3',
+      compatibilityMode: 'googleSheets',
       thousandSeparator: ',',
       functionArgSeparator: ',',
     })).not.toThrow()
@@ -197,6 +198,15 @@ describe('Thousands separator - config validation', () => {
       licenseKey: 'gpl-v3',
       thousandSeparator: '',
     })).not.toThrow()
+  })
+
+  it('rejects thousandSeparator equal to functionArgSeparator in non-GSheets config', () => {
+    expect(() => new Config({
+      licenseKey: 'gpl-v3',
+      thousandSeparator: '.',
+      functionArgSeparator: '.',
+      decimalSeparator: ',',
+    })).toThrow()
   })
 })
 

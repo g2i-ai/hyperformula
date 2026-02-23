@@ -294,10 +294,16 @@ export class Config implements ConfigParams, ParserConfig {
     )
 
     if (this.thousandSeparator !== '') {
-      configCheckIfParametersNotInConflict(
+      const separatorsToCheck: { value: string, name: string }[] = [
         {value: this.decimalSeparator, name: 'decimalSeparator'},
         {value: this.thousandSeparator, name: 'thousandSeparator'},
-      )
+      ]
+      // In GSheets mode, thousandSeparator intentionally equals functionArgSeparator (both ',').
+      // Outside GSheets mode, this conflict must be caught.
+      if (this.compatibilityMode !== 'googleSheets') {
+        separatorsToCheck.push({value: this.functionArgSeparator, name: 'functionArgSeparator'})
+      }
+      configCheckIfParametersNotInConflict(...separatorsToCheck)
     }
 
     configCheckIfParametersNotInConflict(
@@ -348,6 +354,7 @@ export class Config implements ConfigParams, ParserConfig {
         dateFormats: mergedDateFormats,
         localeLang: mergedLocaleLang,
         currencySymbol: mergedCurrencySymbol,
+        thousandSeparator: mergedThousandSeparator,
         ...remainingConfig
       } = mergedConfig
 
@@ -356,6 +363,7 @@ export class Config implements ConfigParams, ParserConfig {
         ...(init.dateFormats !== undefined ? {dateFormats: mergedDateFormats} : {}),
         ...(init.localeLang !== undefined ? {localeLang: mergedLocaleLang} : {}),
         ...(init.currencySymbol !== undefined ? {currencySymbol: mergedCurrencySymbol} : {}),
+        ...(init.thousandSeparator !== undefined ? {thousandSeparator: mergedThousandSeparator} : {}),
       }
     }
 
