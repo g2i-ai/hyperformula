@@ -126,15 +126,8 @@ export class NumberLiteralMatcher {
    */
   private consumeThousandsGroups(text: string, pos: number, len: number): number {
     while (pos < len && text[pos] === this.thousandSeparator) {
-      // Lookahead: need exactly 3 digits after separator
+      // Fewer than 3 characters remain after the separator — cannot form a valid group
       if (pos + 3 >= len) {
-        // Not enough characters; check if we have exactly 3 digits at end
-        const remaining = len - pos - 1
-        if (remaining === 3 && allDigits(text, pos + 1, len)) {
-          // At end of string, 3 digits — valid group
-          pos = len
-          break
-        }
         break
       }
 
