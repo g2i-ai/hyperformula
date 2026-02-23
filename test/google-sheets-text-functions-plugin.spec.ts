@@ -380,6 +380,14 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('truncates non-integer num_bytes before computing start position', () => {
+      // RIGHTB("hello", 2.5) should return "lo" (2 bytes, truncating 2.5 to 2)
+      // not "llo" (3 bytes from non-integer arithmetic in startByte calculation)
+      const hf = buildWithPlugin([['=RIGHTB("hello", 2.5)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('lo')
+      hf.destroy()
+    })
   })
 
   describe('MIDB', () => {

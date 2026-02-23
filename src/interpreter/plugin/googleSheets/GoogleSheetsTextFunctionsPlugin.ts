@@ -372,7 +372,10 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
 
       const encoder = new TextEncoder()
       const totalBytes = encoder.encode(text).length
-      const startByte = Math.max(0, totalBytes - numBytes)
+      // Truncate numBytes to an integer before the arithmetic so that a
+      // non-integer value (e.g. 2.5) does not produce a fractional startByte
+      // that Uint8Array.slice would truncate toward zero, returning one extra byte.
+      const startByte = Math.max(0, totalBytes - Math.trunc(numBytes))
 
       return this.sliceByBytes(text, 0, totalBytes, startByte)
     })
