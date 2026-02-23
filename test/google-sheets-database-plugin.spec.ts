@@ -572,4 +572,68 @@ describe('GoogleSheetsDatabasePlugin', () => {
     expect(hf.getCellValue(adr('A11'))).toBe(5)
     hf.destroy()
   })
+
+  // ---------------------------------------------------------------------------
+  // Numeric criteria cell values (Comment 1: plain numbers must match)
+  // ---------------------------------------------------------------------------
+
+  it('plain numeric value in criteria cell matches numeric column values', () => {
+    // The criteria cell contains the number 25 (not the string "25")
+    // This must match Bob whose Age is 25
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [25],             // numeric criterion (no operator prefix)
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Bob has Age=25
+    expect(hf.getCellValue(adr('A11'))).toBe(1)
+    hf.destroy()
+  })
+
+  it('DSUM with plain numeric criterion in criteria cell', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [30],             // numeric criterion (no operator prefix)
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Alice has Age=30; Salary=90000
+    expect(hf.getCellValue(adr('A11'))).toBe(90000)
+    hf.destroy()
+  })
+
+  it('DGET with plain numeric criterion retrieves correct value', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [25],             // numeric — matches Bob
+      spacer[0],
+      ['=DGET(A1:D6, "Name", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe('Bob')
+    hf.destroy()
+  })
+
+  it('numeric criterion 0 returns no matches for nonzero column', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [0],              // no employee has Age=0
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
 })

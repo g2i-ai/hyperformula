@@ -7,7 +7,7 @@ import {CellError, ErrorType} from '../../../Cell'
 import {ErrorMessage} from '../../../error-message'
 import {ProcedureAst} from '../../../parser'
 import {InterpreterState} from '../../InterpreterState'
-import {InternalScalarValue, InterpreterValue} from '../../InterpreterValue'
+import {EmptyValue, InternalScalarValue, InterpreterValue} from '../../InterpreterValue'
 import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 
@@ -32,11 +32,20 @@ const DATABASE_PARAMETERS = [
 ]
 
 /**
- * Parses a criterion string into a structured form with operator and value.
+ * Parses a criterion value (string or number) into a structured form with operator and value.
  *
- * Handles comparison operators (>, <, >=, <=, <>) and wildcard patterns (* and ?).
+ * - A raw number always means exact equality with that number.
+ * - A string may begin with a comparison operator (>, <, >=, <=, <>, =); if it does,
+ *   the remainder is parsed as a number when possible, otherwise kept as a string.
+ * - A plain string without an operator prefix is treated as an equality criterion;
+ *   if the string is a valid number it is stored as a number so it can match numeric cells.
+ * - Wildcard patterns (* and ?) are detected and handled via regex.
  */
-function parseCriterion(raw: string): ParsedCriterion {
+function parseCriterion(raw: string | number): ParsedCriterion {
+  if (typeof raw === 'number') {
+    return {operator: '=', value: raw, isWildcard: false}
+  }
+
   const comparisonMatch = /^(>=|<=|<>|>|<|=)(.*)$/.exec(raw)
 
   if (comparisonMatch) {
@@ -48,6 +57,10 @@ function parseCriterion(raw: string): ParsedCriterion {
   }
 
   const isWildcard = /[*?]/.test(raw)
+  const numericValue = Number(raw)
+  if (!isWildcard && raw !== '' && !isNaN(numericValue)) {
+    return {operator: '=', value: numericValue, isWildcard: false}
+  }
   return {operator: '=', value: raw, isWildcard}
 }
 
@@ -66,7 +79,7 @@ function wildcardToRegExp(pattern: string): RegExp {
  * Tests whether a cell value matches a parsed criterion.
  */
 function matchesCriterion(cellValue: InternalScalarValue, criterion: ParsedCriterion): boolean {
-  if (cellValue === null || cellValue === undefined) {
+  if (cellValue === null || cellValue === undefined || cellValue === EmptyValue) {
     return false
   }
 
@@ -194,13 +207,13 @@ function findMatchingRowIndices(
         if (dbColIdx === -1) return true // Unknown header, skip
 
         const criteriaCell = criteriaRow[criteriaColIdx]
-        if (criteriaCell === null || criteriaCell === undefined || criteriaCell === '') {
+        if (criteriaCell === null || criteriaCell === undefined || criteriaCell === '' || criteriaCell === EmptyValue) {
           return true // Empty criterion matches everything
         }
 
-        const rawCriteria = criteriaCell instanceof Object && 'val' in criteriaCell
-          ? String((criteriaCell as {val: number}).val)
-          : String(criteriaCell)
+        const rawCriteria: string | number = criteriaCell instanceof Object && 'val' in criteriaCell
+          ? (criteriaCell as {val: number}).val
+          : (typeof criteriaCell === 'number' ? criteriaCell : String(criteriaCell))
 
         const parsedCriterion = parseCriterion(rawCriteria)
         return matchesCriterion(row[dbColIdx], parsedCriterion)
