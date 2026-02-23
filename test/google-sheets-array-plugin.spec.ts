@@ -939,3 +939,32 @@ describe('GROWTH empty known_x argument handling', () => {
     hf.destroy()
   })
 })
+
+describe('GROWTH/TREND size prediction with empty new_x argument', () => {
+  it('GROWTH uses knownY size when new_x is omitted (empty arg)', () => {
+    // =GROWTH(y,x,,TRUE) — new_x skipped; size should match knownY
+    // D1:D3 = [2,4,8], F1:F3 = [1,2,3]
+    const hf = HyperFormula.buildFromArray([
+      ['=GROWTH(D1:D3,F1:F3,,TRUE())', null, null, 2, null, 1],
+      [null, null, null, 4, null, 2],
+      [null, null, null, 8, null, 3],
+    ], gsOptions)
+
+    // The result should have 3 rows (same as knownY), not 1x1
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('A3'))).toBe(true)
+    hf.destroy()
+  })
+
+  it('TREND uses knownY size when new_x is omitted (empty arg)', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=TREND(D1:D3,F1:F3,,TRUE())', null, null, 3, null, 1],
+      [null, null, null, 5, null, 2],
+      [null, null, null, 7, null, 3],
+    ], gsOptions)
+
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(true)
+    expect(hf.isCellPartOfArray(adr('A3'))).toBe(true)
+    hf.destroy()
+  })
+})

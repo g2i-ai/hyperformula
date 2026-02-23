@@ -972,7 +972,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the GROWTH result array. */
   public growthArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    if (ast.args.length > 2) {
+    if (ast.args.length > 2 && ast.args[2].type !== AstNodeType.EMPTY) {
       const size = this.arraySizeForAst(ast.args[2], state)
       return new ArraySize(size.width, size.height)
     }
@@ -1047,7 +1047,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
   /** Predicts the size of the TREND result array. */
   public trendArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) return ArraySize.error()
-    if (ast.args.length > 2) {
+    if (ast.args.length > 2 && ast.args[2].type !== AstNodeType.EMPTY) {
       const size = this.arraySizeForAst(ast.args[2], state)
       return new ArraySize(size.width, size.height)
     }
