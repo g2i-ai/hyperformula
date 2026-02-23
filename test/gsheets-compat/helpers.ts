@@ -60,32 +60,39 @@ export function parseA1(ref: string): [number, number] {
 
 /**
  * Builds a 2D sheet array from a cellData map.
- * The formula is placed after all cell data rows.
+ * When no cellData, the formula goes in A1.
+ * When cellData is present, the formula goes two rows after the last data row.
  * Cell data is placed at the referenced positions.
  */
 export function buildSheetData(
   formula: string,
   cellData?: Record<string, string | number | boolean | null>,
 ): (string | number | boolean | null)[][] {
-  // Determine dimensions needed
-  let maxRow = 0
-  let maxCol = 0
-
   const cells: Array<{col: number, row: number, value: string | number | boolean | null}> = []
 
   if (cellData) {
     for (const [ref, value] of Object.entries(cellData)) {
       const [col, row] = parseA1(ref)
       cells.push({col, row, value})
-      if (row > maxRow) maxRow = row
-      if (col > maxCol) maxCol = col
     }
+  }
+
+  // No cell data: simple case, formula in A1
+  if (cells.length === 0) {
+    return [['=' + formula]]
+  }
+
+  // Determine dimensions needed
+  let maxRow = 0
+  let maxCol = 0
+  for (const {col, row} of cells) {
+    if (row > maxRow) maxRow = row
+    if (col > maxCol) maxCol = col
   }
 
   // Formula goes at a row after all data (safe position)
   const formulaRow = maxRow + 2
   maxRow = formulaRow
-  const formulaCol = 0
 
   // Build the 2D array
   const sheet: (string | number | boolean | null)[][] = []
@@ -106,10 +113,10 @@ export function buildSheetData(
   }
 
   // Place formula
-  while (sheet[formulaRow]!.length <= formulaCol) {
+  while (sheet[formulaRow]!.length <= 0) {
     sheet[formulaRow]!.push(null)
   }
-  sheet[formulaRow]![formulaCol] = '=' + formula
+  sheet[formulaRow]![0] = '=' + formula
 
   return sheet
 }
