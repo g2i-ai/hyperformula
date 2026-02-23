@@ -6,8 +6,9 @@
 import {CellError, ErrorType, SimpleCellAddress} from '../../../Cell'
 import {ErrorMessage} from '../../../error-message'
 import {AstNodeType, ProcedureAst} from '../../../parser'
+import {columnIndexToLabel} from '../../../parser/addressRepresentationConverters'
 import {InterpreterState} from '../../InterpreterState'
-import {InternalScalarValue, InterpreterValue, isExtendedNumber, getRawValue, EmptyValue, NumberType, DateNumber} from '../../InterpreterValue'
+import {InternalScalarValue, InterpreterValue, isExtendedNumber, EmptyValue, NumberType, DateNumber, RichNumber, getTypeOfExtendedNumber} from '../../InterpreterValue'
 import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 
@@ -70,6 +71,8 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
    * Performs binary search in a sorted range (ascending order).
    * If 2 arguments: search_range is a 2-column array, search first column and return second.
    * If 3 arguments: search in search_range and return from result_range.
+   *
+   * Supports both numeric and string keys by using typed value comparison.
    */
   public lookup(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     if (ast.args.length < 2 || ast.args.length > 3) {
@@ -102,25 +105,33 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
     }
   }
 
+  /**
+   * Compares two scalar values for LOOKUP's "largest value <= key" semantics.
+   * Supports numeric and string comparison without forcing numeric coercion.
+   * Returns true when cellVal <= key using natural type ordering.
+   */
+  private lookupValueLessThanOrEqual(cellVal: InternalScalarValue, key: InternalScalarValue): boolean {
+    if (cellVal instanceof CellError || key instanceof CellError) {
+      return false
+    }
+    if (cellVal === EmptyValue || key === EmptyValue) {
+      return false
+    }
+    return this.arithmeticHelper.leq(cellVal, key)
+  }
+
   private lookupTwoArgument(key: InternalScalarValue, searchRange: SimpleRangeValue): InternalScalarValue {
-    const keyNum = this.coerceScalarToNumberOrError(key)
-    if (keyNum instanceof CellError) {
-      return keyNum
+    if (key instanceof CellError) {
+      return key
     }
 
-    const keyValue = getRawValue(keyNum)
     const values = searchRange.data
 
-    // Binary search in first column for largest value <= key
+    // Linear scan (ascending order assumed) for largest value <= key
     let bestRowIndex = -1
     for (let i = 0; i < values.length; i++) {
       const cellValue = values[i][0]
-      const cellNum = this.coerceScalarToNumberOrError(cellValue)
-      if (cellNum instanceof CellError) {
-        continue
-      }
-      const cellValue_ = getRawValue(cellNum)
-      if (cellValue_ <= keyValue) {
+      if (this.lookupValueLessThanOrEqual(cellValue, key)) {
         bestRowIndex = i
       } else {
         break
@@ -135,26 +146,19 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
   }
 
   private lookupThreeArgument(key: InternalScalarValue, searchRange: SimpleRangeValue, resultRange: SimpleRangeValue): InternalScalarValue {
-    const keyNum = this.coerceScalarToNumberOrError(key)
-    if (keyNum instanceof CellError) {
-      return keyNum
+    if (key instanceof CellError) {
+      return key
     }
 
-    const keyValue = getRawValue(keyNum)
     const searchValues = searchRange.data
     const resultValues = resultRange.data
 
-    // Binary search in search range for largest value <= key
+    // Linear scan (ascending order assumed) for largest value <= key
     let bestIndex = -1
     const flatSearchValues = searchValues.flat()
     for (let i = 0; i < flatSearchValues.length; i++) {
       const cellValue = flatSearchValues[i]
-      const cellNum = this.coerceScalarToNumberOrError(cellValue)
-      if (cellNum instanceof CellError) {
-        continue
-      }
-      const cellValue_ = getRawValue(cellNum)
-      if (cellValue_ <= keyValue) {
+      if (this.lookupValueLessThanOrEqual(cellValue, key)) {
         bestIndex = i
       } else {
         break
@@ -217,7 +221,8 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
         return cellValue ?? EmptyValue
       }
       case 'address': {
-        return `$${String.fromCharCode(65 + cellRef.col)}$${cellRef.row + 1}`
+        const colLabel = columnIndexToLabel(cellRef.col)
+        return `$${colLabel}$${cellRef.row + 1}`
       }
       case 'col': {
         return cellRef.col + 1
@@ -266,15 +271,16 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
    * Converts Unix timestamp to HyperFormula date serial number.
    * unit: 1=seconds (default), 2=milliseconds, 3=microseconds
    * HyperFormula epoch: 1899-12-30, Unix epoch: 1970-01-01 (difference: 25569 days)
+   *
+   * Returns VALUE error for unit values outside {1, 2, 3}.
    */
   public epochtodate(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('EPOCHTODATE'), (timestamp: number, unit: number) => {
-      // Determine divisor based on unit
-      let divisor = 1
-      if (unit === 2) {
-        divisor = 1000
-      } else if (unit === 3) {
-        divisor = 1000000
+      const divisors: Record<number, number> = {1: 1, 2: 1000, 3: 1000000}
+      const divisor = divisors[unit]
+
+      if (divisor === undefined) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.BadMode)
       }
 
       // Convert to seconds, then to days, then add HF epoch offset
@@ -286,29 +292,22 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
   /**
    * ISDATE(value)
    *
-   * Returns TRUE if value is a date, FALSE otherwise.
+   * Returns TRUE if value is a date or datetime typed number, FALSE otherwise.
+   * Unlike Excel DATEVALUE, this does NOT parse strings — only typed date
+   * values (DateNumber, DateTimeNumber) return TRUE.
    */
   public isdate(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     if (ast.args.length !== 1) {
       return new CellError(ErrorType.NA, ErrorMessage.WrongArgNumber)
     }
 
-    const valueArg = ast.args[0]
-    const value = this.evaluateAst(valueArg, state)
+    const value = this.evaluateAst(ast.args[0], state)
 
-    // Check if value is a DateNumber or similar date-typed number
-    if (isExtendedNumber(value)) {
-      const numberType = value instanceof DateNumber ? value.getDetailedType() : NumberType.NUMBER_RAW
-
-      return numberType === NumberType.NUMBER_DATE || numberType === NumberType.NUMBER_DATETIME
+    if (!(value instanceof RichNumber)) {
+      return false
     }
 
-    // Try to parse string as date
-    if (typeof value === 'string') {
-      const parsed = this.dateTimeHelper.dateStringToDateNumber(value)
-      return parsed !== undefined
-    }
-
-    return false
+    const numberType = getTypeOfExtendedNumber(value)
+    return numberType === NumberType.NUMBER_DATE || numberType === NumberType.NUMBER_DATETIME
   }
 }

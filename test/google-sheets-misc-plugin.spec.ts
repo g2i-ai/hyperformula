@@ -156,7 +156,7 @@ describe('GoogleSheetsMiscPlugin', () => {
 
     it('should return "b" for empty cells with "type" info_type', () => {
       const hf = HyperFormula.buildFromArray([
-        ['', '=CELL("type", A1)'],
+        [null, '=CELL("type", A1)'],
       ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
 
       expect(hf.getCellValue(adr('B1'))).toBe('b')
@@ -274,6 +274,130 @@ describe('GoogleSheetsMiscPlugin', () => {
       ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
 
       expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    it('should return TRUE for DateTimeNumber values (NOW returns date+time)', () => {
+      // DateTimeNumber is a sibling of DateNumber — both represent dates
+      const hf = HyperFormula.buildFromArray([
+        ['=ISDATE(NOW())'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    it('should not parse string arguments as dates', () => {
+      // Google Sheets ISDATE only checks if a value IS a date, not whether
+      // a string can be parsed into one
+      const hf = HyperFormula.buildFromArray([
+        ['=ISDATE("January 1, 2023")'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+  })
+
+  describe('CELL address beyond Z', () => {
+    it('should return correct absolute address for column AA (index 26)', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=CELL("address", AA1)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe('$AA$1')
+      hf.destroy()
+    })
+
+    it('should return correct absolute address for column AB (index 27)', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=CELL("address", AB1)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe('$AB$1')
+      hf.destroy()
+    })
+
+    it('should return correct absolute address for column AZ (index 51)', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=CELL("address", AZ1)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe('$AZ$1')
+      hf.destroy()
+    })
+  })
+
+  describe('LOOKUP with string keys', () => {
+    it('should find exact string match in 3-argument form', () => {
+      const hf = HyperFormula.buildFromArray([
+        [null, null],
+        ['apple', 10],
+        ['banana', 20],
+        ['cherry', 30],
+        ['=LOOKUP("banana", A2:A4, B2:B4)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A5'))).toBe(20)
+      hf.destroy()
+    })
+
+    it('should return largest value <= string key in 3-argument form', () => {
+      const hf = HyperFormula.buildFromArray([
+        [null, null],
+        ['apple', 10],
+        ['banana', 20],
+        ['cherry', 30],
+        // "b" comes after "apple" but before "banana" — should return apple's value
+        ['=LOOKUP("b", A2:A4, B2:B4)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A5'))).toBe(10)
+      hf.destroy()
+    })
+
+    it('should return NA for string key before all entries in 3-argument form', () => {
+      const hf = HyperFormula.buildFromArray([
+        [null, null],
+        ['banana', 20],
+        ['cherry', 30],
+        ['=LOOKUP("aaa", A2:A3, B2:B3)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      const val = hf.getCellValue(adr('A4'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+  })
+
+  describe('EPOCHTODATE invalid unit', () => {
+    it('should return VALUE error for unit=0', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=EPOCHTODATE(0, 0)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('should return VALUE error for unit=4', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=EPOCHTODATE(0, 4)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('should return VALUE error for unit=99', () => {
+      const hf = HyperFormula.buildFromArray([
+        ['=EPOCHTODATE(0, 99)'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
   })
