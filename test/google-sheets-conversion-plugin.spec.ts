@@ -1,4 +1,4 @@
-import {DetailedCellError, HyperFormula} from '../src'
+import {DetailedCellError, ErrorType, HyperFormula} from '../src'
 import {adr} from './testUtils'
 import {GoogleSheetsConversionPlugin} from '../src/interpreter/plugin/googleSheets/GoogleSheetsConversionPlugin'
 import {NumberType} from '../src/interpreter/InterpreterValue'
@@ -31,6 +31,12 @@ describe('GoogleSheetsConversionPlugin', () => {
     it('returns an error for a non-numeric argument', () => {
       const hf = HyperFormula.buildFromArray([['=TO_DATE("not a number")']], GS_OPTIONS)
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('returns a NUMBER_DATE typed value (not just a plain number)', () => {
+      const hf = HyperFormula.buildFromArray([['=TO_DATE(25405)']], GS_OPTIONS)
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_DATE)
       hf.destroy()
     })
   })
@@ -207,6 +213,22 @@ describe('GoogleSheetsConversionPlugin', () => {
     it('returns #N/A for an unknown to_unit', () => {
       const hf = HyperFormula.buildFromArray([['=CONVERT(1,"m","xyz")']], GS_OPTIONS)
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('returns #N/A (not #NUM) when unit is a prototype property like "toString"', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1,"toString","m")']], GS_OPTIONS)
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NA)
+      hf.destroy()
+    })
+
+    it('returns #N/A (not #NUM) when unit is a prototype property like "constructor"', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1,"constructor","m")']], GS_OPTIONS)
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NA)
       hf.destroy()
     })
 
