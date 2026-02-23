@@ -8,7 +8,7 @@ import {CellError, ErrorType} from '../../../Cell'
 import {ErrorMessage} from '../../../error-message'
 import {Ast, AstNodeType, ProcedureAst} from '../../../parser'
 import {InterpreterState} from '../../InterpreterState'
-import {EmptyValue, InternalScalarValue, InterpreterValue} from '../../InterpreterValue'
+import {EmptyValue, getRawValue, InternalScalarValue, InterpreterValue, isExtendedNumber, RichNumber} from '../../InterpreterValue'
 import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 
@@ -752,10 +752,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     if (binsVal instanceof CellError) return binsVal
 
     const dataNumbers = dataVal.valuesFromTopLeftCorner()
-      .filter(v => typeof v === 'number') as number[]
+      .filter(isExtendedNumber)
+      .map(v => getRawValue(v as number | RichNumber))
 
     const bins = binsVal.valuesFromTopLeftCorner()
-      .filter(v => typeof v === 'number') as number[]
+      .filter(isExtendedNumber)
+      .map(v => getRawValue(v as number | RichNumber))
 
     bins.sort((a, b) => a - b)
 
@@ -1305,14 +1307,14 @@ function isLiteralFalsy(ast: Ast): boolean {
  * Numbers sort before strings, strings before booleans, booleans before errors, errors before empty.
  */
 function compareValues(a: InternalScalarValue, b: InternalScalarValue): number {
-  if (typeof a === 'number' && typeof b === 'number') return a - b
+  if (isExtendedNumber(a) && isExtendedNumber(b)) return getRawValue(a) - getRawValue(b)
   if (typeof a === 'string' && typeof b === 'string') return a.localeCompare(b)
   if (typeof a === 'boolean' && typeof b === 'boolean') return Number(a) - Number(b)
   return typeOrder(a) - typeOrder(b)
 }
 
 function typeOrder(v: InternalScalarValue): number {
-  if (typeof v === 'number') return 0
+  if (isExtendedNumber(v)) return 0
   if (typeof v === 'string') return 1
   if (typeof v === 'boolean') return 2
   if (v instanceof CellError) return 3
@@ -1340,8 +1342,8 @@ function extractNumbers(range: SimpleRangeValue): number[] | null {
   const values = range.valuesFromTopLeftCorner()
   const numbers: number[] = []
   for (const v of values) {
-    if (typeof v !== 'number') return null
-    numbers.push(v)
+    if (!isExtendedNumber(v)) return null
+    numbers.push(getRawValue(v))
   }
   return numbers
 }

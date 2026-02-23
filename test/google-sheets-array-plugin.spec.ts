@@ -968,3 +968,70 @@ describe('GROWTH/TREND size prediction with empty new_x argument', () => {
     hf.destroy()
   })
 })
+
+// ─── SORT: RichNumber handling ───────────────────────────────────────────────
+
+describe('SORT RichNumber handling', () => {
+  it('sorts percentage values numerically', () => {
+    // '30%' is stored internally as PercentNumber(0.30) — a RichNumber
+    // typeOrder must use isExtendedNumber() or percentages sort as objects (last)
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3)', null, null, '30%'],
+      [null, null, null, '10%'],
+      [null, null, null, '20%'],
+    ], gsOptions)
+
+    // getCellValue exports raw number: 0.1, 0.2, 0.3
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.1)
+    expect(hf.getCellValue(adr('A2'))).toBeCloseTo(0.2)
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(0.3)
+    hf.destroy()
+  })
+
+  it('sorts percentage values descending', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3,1,FALSE())', null, null, '10%'],
+      [null, null, null, '30%'],
+      [null, null, null, '20%'],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.3)
+    expect(hf.getCellValue(adr('A2'))).toBeCloseTo(0.2)
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(0.1)
+    hf.destroy()
+  })
+
+  it('sorts mixed plain numbers and percentages together numerically', () => {
+    // 50% = 0.5, which sits between 0.3 and 0.7
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3)', null, null, 0.7],
+      [null, null, null, '50%'],
+      [null, null, null, 0.3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.3)
+    expect(hf.getCellValue(adr('A2'))).toBeCloseTo(0.5)
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(0.7)
+    hf.destroy()
+  })
+})
+
+// ─── FREQUENCY: RichNumber handling ──────────────────────────────────────────
+
+describe('FREQUENCY RichNumber handling', () => {
+  it('counts percentage values in bins (they are RichNumber, not plain number)', () => {
+    // '10%'=0.1, '30%'=0.3, '50%'=0.5
+    // Bins: [0.2, 0.4] → expected counts: [1 (≤0.2), 1 (≤0.4), 1 (>0.4), overflow]
+    const hf = HyperFormula.buildFromArray([
+      ['=FREQUENCY(D1:D3,E1:E2)', null, null, '10%', 0.2],
+      [null, null, null, '30%', 0.4],
+      [null, null, null, '50%', null],
+      [null, null, null, null, null],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(1)  // 0.1 ≤ 0.2
+    expect(hf.getCellValue(adr('A2'))).toBe(1)  // 0.3 ≤ 0.4
+    expect(hf.getCellValue(adr('A3'))).toBe(1)  // 0.5 > 0.4
+    hf.destroy()
+  })
+})
