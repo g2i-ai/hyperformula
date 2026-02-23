@@ -58,6 +58,23 @@ describe('SORT', () => {
     expect(hf.getCellValue(adr('B2'))).toBe('b')
     hf.destroy()
   })
+
+  it('recalculates when source range changes', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=SORT(D1:D3)', null, null, 3],
+      [null, null, null, 1],
+      [null, null, null, 2],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(1)
+
+    hf.setCellContents(adr('D2'), 10)
+
+    expect(hf.getCellValue(adr('A1'))).toBe(2)
+    expect(hf.getCellValue(adr('A2'))).toBe(3)
+    expect(hf.getCellValue(adr('A3'))).toBe(10)
+    hf.destroy()
+  })
 })
 
 // ─── UNIQUE ───────────────────────────────────────────────────────────────────
