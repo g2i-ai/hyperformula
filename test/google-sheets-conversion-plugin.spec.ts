@@ -192,6 +192,14 @@ describe('GoogleSheetsConversionPlugin', () => {
       hf.destroy()
     })
 
+    it('returns #N/A when both units are the same but unknown', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1,"xyz","xyz")']], GS_OPTIONS)
+      const val = hf.getCellValue(adr('A1'))
+      expect(val).toBeInstanceOf(DetailedCellError)
+      expect((val as DetailedCellError).type).toBe(ErrorType.NA)
+      hf.destroy()
+    })
+
     it('converts liters to gallons', () => {
       const hf = HyperFormula.buildFromArray([['=CONVERT(1,"l","gal")']], GS_OPTIONS)
       expect(hf.getCellValue(adr('A1'))).toBeCloseTo(1 / 3.785411784, 5)
