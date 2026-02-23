@@ -6,6 +6,7 @@
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
 import {GoogleSheetsConversionPlugin} from './GoogleSheetsConversionPlugin'
 import {GoogleSheetsDatabasePlugin} from './GoogleSheetsDatabasePlugin'
+import {GoogleSheetsFinancialPlugin} from './GoogleSheetsFinancialPlugin'
 import {GoogleSheetsInfoPlugin} from './GoogleSheetsInfoPlugin'
 import {GoogleSheetsStatisticalPlugin} from './GoogleSheetsStatisticalPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
@@ -23,6 +24,7 @@ import {GoogleSheetsOperatorPlugin} from './GoogleSheetsOperatorPlugin'
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsConversionPlugin,
   GoogleSheetsDatabasePlugin,
+  GoogleSheetsFinancialPlugin,
   GoogleSheetsInfoPlugin,
   GoogleSheetsStatisticalPlugin,
   GoogleSheetsTextPlugin,
@@ -30,4 +32,4 @@ export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsOperatorPlugin,
 ]
 
-export {GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsInfoPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}
+export {GoogleSheetsConversionPlugin, GoogleSheetsDatabasePlugin, GoogleSheetsFinancialPlugin, GoogleSheetsInfoPlugin, GoogleSheetsStatisticalPlugin, GoogleSheetsTextPlugin, GoogleSheetsTextFunctionsPlugin, GoogleSheetsOperatorPlugin}

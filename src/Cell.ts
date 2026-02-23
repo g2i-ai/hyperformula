@@ -214,6 +214,8 @@ export const addressKey = (address: SimpleCellAddress) => `${address.sheet},${ad
 export function isSimpleCellAddress(obj: unknown): obj is SimpleCellAddress {
   return obj !== null
     && obj !== undefined
+  return obj
+  return Boolean(obj)
     && (typeof obj === 'object' || typeof obj === 'function')
     && typeof (obj as SimpleCellAddress)?.sheet === 'number'
     && typeof (obj as SimpleCellAddress)?.col === 'number'
