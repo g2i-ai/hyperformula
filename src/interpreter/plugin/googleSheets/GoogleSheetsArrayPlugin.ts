@@ -1081,15 +1081,14 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     let knownX: number[]
     if (ast.args.length > 1 && ast.args[1] !== undefined) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
-      if (!(knownXVal instanceof CellError)) {
-        const extracted = extractNumbers(knownXVal)
-        if (extracted === null || extracted.length !== n) {
-          return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
-        }
-        knownX = extracted
-      } else {
-        knownX = Array.from({length: n}, (_, i) => i + 1)
+      if (knownXVal instanceof CellError) {
+        return knownXVal
       }
+      const extracted = extractNumbers(knownXVal)
+      if (extracted === null || extracted.length !== n) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
+      }
+      knownX = extracted
     } else {
       knownX = Array.from({length: n}, (_, i) => i + 1)
     }
@@ -1173,15 +1172,14 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     let knownX: number[]
     if (ast.args.length > 1 && ast.args[1] !== undefined) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
-      if (!(knownXVal instanceof CellError)) {
-        const extracted = extractNumbers(knownXVal)
-        if (extracted === null || extracted.length !== n) {
-          return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
-        }
-        knownX = extracted
-      } else {
-        knownX = Array.from({length: n}, (_, i) => i + 1)
+      if (knownXVal instanceof CellError) {
+        return knownXVal
       }
+      const extracted = extractNumbers(knownXVal)
+      if (extracted === null || extracted.length !== n) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
+      }
+      knownX = extracted
     } else {
       knownX = Array.from({length: n}, (_, i) => i + 1)
     }

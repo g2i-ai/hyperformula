@@ -221,7 +221,7 @@ describe('GoogleSheetsDatabasePlugin', () => {
     hf.destroy()
   })
 
-  it('DGET returns VALUE error when no rows match', () => {
+  it('DGET returns NUM error when no rows match', () => {
     const data = [
       ...database,
       ...spacer,
@@ -233,7 +233,7 @@ describe('GoogleSheetsDatabasePlugin', () => {
     const hf = buildWithPlugin(data)
     const val = hf.getCellValue(adr('A11'))
     expect(val).toBeInstanceOf(DetailedCellError)
-    expect((val as DetailedCellError).type).toBe(ErrorType.VALUE)
+    expect((val as DetailedCellError).type).toBe(ErrorType.NUM)
     hf.destroy()
   })
 

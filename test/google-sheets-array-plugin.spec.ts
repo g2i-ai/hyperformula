@@ -682,6 +682,20 @@ describe('LINEST', () => {
     hf.destroy()
   })
 
+  it('propagates error when known_x is a single-cell error formula', () => {
+    // When known_x arg evaluates to a CellError (e.g. =NA()), LINEST must propagate it.
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A3:A5,NA())', null],
+      [null, null],
+      [3, null],
+      [5, null],
+      [7, null],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
   it('returns 5-row statistics array when stats=TRUE', () => {
     const hf = HyperFormula.buildFromArray([
       ['=LINEST(A8:A10,B8:B10,TRUE(),TRUE())', null, null, null, null, null],
@@ -750,6 +764,20 @@ describe('LOGEST', () => {
     expect(hf.getCellValue(adr('B1'))).toBeCloseTo(1)  // b
     // Row 2 must be empty — stats were not requested
     expect(hf.getCellValue(adr('A2'))).toBeNull()
+    hf.destroy()
+  })
+
+  it('propagates error when known_x is a single-cell error formula', () => {
+    // When known_x arg evaluates to a CellError (e.g. =NA()), LOGEST must propagate it.
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A3:A5,NA())', null],
+      [null, null],
+      [2, null],
+      [4, null],
+      [8, null],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
     hf.destroy()
   })
 })

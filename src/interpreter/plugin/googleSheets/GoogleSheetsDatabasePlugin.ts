@@ -407,7 +407,7 @@ export class GoogleSheetsDatabasePlugin extends FunctionPlugin implements Functi
     if (result.error) return result.error
 
     if (result.values.length === 0) {
-      return new CellError(ErrorType.VALUE, ErrorMessage.ValueNotFound)
+      return new CellError(ErrorType.NUM, ErrorMessage.ValueNotFound)
     }
 
     if (result.values.length > 1) {
