@@ -27,6 +27,16 @@ describe('GoogleSheetsOperatorPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe(4)
       hf.destroy()
     })
+
+    // Epsilon rounding: when the result is near-zero relative to the operands,
+    // it should be rounded to 0 (e.g. floating point cancellation artifacts)
+    it('should apply epsilon rounding to near-zero sums', () => {
+      // In raw JS, 0.1 + 0.2 - 0.3 = 5.551115123125783e-17, not 0.
+      // With epsilon rounding, ADD(0.1+0.2, -0.3) rounds this to 0.
+      const hf = buildWithPlugin([['=ADD(ADD(0.1,0.2),-0.3)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(0)
+      hf.destroy()
+    })
   })
 
   describe('MINUS', () => {
@@ -45,6 +55,14 @@ describe('GoogleSheetsOperatorPlugin', () => {
     it('should subtract with decimals', () => {
       const hf = buildWithPlugin([['=MINUS(5.5,2.5)']])
       expect(hf.getCellValue(adr('A1'))).toBe(3)
+      hf.destroy()
+    })
+
+    // Epsilon rounding: subtracting nearly equal numbers should give 0
+    it('should apply epsilon rounding when result is near zero', () => {
+      // 1 - (1 + 1e-16) should be 0 after epsilon rounding
+      const hf = buildWithPlugin([['=MINUS(1,1)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(0)
       hf.destroy()
     })
   })
@@ -154,8 +172,15 @@ describe('GoogleSheetsOperatorPlugin', () => {
       hf.destroy()
     })
 
-    it('should compare strings', () => {
+    it('should compare strings using locale-aware collation', () => {
       const hf = buildWithPlugin([['=GT("b","a")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    // Cross-type ordering: numbers < strings (by cell type ordinal)
+    it('should order number less than string in cross-type comparison', () => {
+      const hf = buildWithPlugin([['=GT("text",1)']])
       expect(hf.getCellValue(adr('A1'))).toBe(true)
       hf.destroy()
     })
@@ -179,6 +204,13 @@ describe('GoogleSheetsOperatorPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe(false)
       hf.destroy()
     })
+
+    // Cross-type ordering: string > number
+    it('should return true when string is compared to number', () => {
+      const hf = buildWithPlugin([['=GTE("text",1)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
   })
 
   describe('LT', () => {
@@ -197,6 +229,13 @@ describe('GoogleSheetsOperatorPlugin', () => {
     it('should return false when a = b', () => {
       const hf = buildWithPlugin([['=LT(5,5)']])
       expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    // Cross-type: number < string
+    it('should return true when number is less than string', () => {
+      const hf = buildWithPlugin([['=LT(1,"text")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
       hf.destroy()
     })
   })
@@ -251,6 +290,20 @@ describe('GoogleSheetsOperatorPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe(true)
       hf.destroy()
     })
+
+    // Number vs string should never be equal
+    it('should return false for number vs string', () => {
+      const hf = buildWithPlugin([['=EQ(1,"1")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    // Case-insensitive by default (Google Sheets EQ is case-insensitive)
+    it('should compare strings case-insensitively by default', () => {
+      const hf = buildWithPlugin([['=EQ("HELLO","hello")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
   })
 
   describe('NE', () => {
@@ -274,6 +327,20 @@ describe('GoogleSheetsOperatorPlugin', () => {
 
     it('should return false for equal strings', () => {
       const hf = buildWithPlugin([['=NE("hello","hello")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(false)
+      hf.destroy()
+    })
+
+    // Number vs string: always not equal due to type mismatch
+    it('should return true for number vs string', () => {
+      const hf = buildWithPlugin([['=NE(1,"1")']])
+      expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    // Case-insensitive: "HELLO" == "hello" so NE returns false
+    it('should treat equal-collation strings as equal', () => {
+      const hf = buildWithPlugin([['=NE("HELLO","hello")']])
       expect(hf.getCellValue(adr('A1'))).toBe(false)
       hf.destroy()
     })
@@ -453,6 +520,23 @@ describe('GoogleSheetsOperatorPlugin', () => {
     it('should return true for value just below exclusive upper bound', () => {
       const hf = buildWithPlugin([['=ISBETWEEN(9.99,5,10,TRUE,FALSE)']])
       expect(hf.getCellValue(adr('A1'))).toBe(true)
+      hf.destroy()
+    })
+
+    // Google Sheets returns #NUM! error when lower_value > upper_value
+    it('should return NUM error when lower bound exceeds upper bound', () => {
+      const hf = buildWithPlugin([['=ISBETWEEN(5,10,1)']])
+      const result = hf.getCellValue(adr('A1')) as DetailedCellError
+      expect(result).toBeInstanceOf(DetailedCellError)
+      expect(result.type).toBe('NUM')
+      hf.destroy()
+    })
+
+    it('should return NUM error when lower equals upper and exclusive on one side', () => {
+      const hf = buildWithPlugin([['=ISBETWEEN(5,10,5)']])
+      const result = hf.getCellValue(adr('A1')) as DetailedCellError
+      expect(result).toBeInstanceOf(DetailedCellError)
+      expect(result.type).toBe('NUM')
       hf.destroy()
     })
   })
