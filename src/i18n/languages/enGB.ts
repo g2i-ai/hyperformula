@@ -450,6 +450,12 @@ const dictionary: RawTranslationPackage = {
     VSTACK: 'VSTACK',
     WRAPCOLS: 'WRAPCOLS',
     WRAPROWS: 'WRAPROWS',
+    CELL: 'CELL',
+    ENCODEURL: 'ENCODEURL',
+    EPOCHTODATE: 'EPOCHTODATE',
+    GESTEP: 'GESTEP',
+    ISDATE: 'ISDATE',
+    LOOKUP: 'LOOKUP',
   },
   langCode: 'enGB',
   ui: {

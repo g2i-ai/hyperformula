@@ -430,6 +430,12 @@ const dictionary: RawTranslationPackage = {
     RIGHTB: 'RIGHTB',
     SEARCHB: 'SEARCHB',
     TEXTJOIN: 'TEXTJOIN',
+    CELL: 'CELL',
+    ENCODEURL: 'ENCODEURL',
+    EPOCHTODATE: 'EPOCHTODATE',
+    GESTEP: 'GESTEP',
+    ISDATE: 'ISDATE',
+    LOOKUP: 'LOOKUP',
   },
   langCode: 'trTR',
   ui: {
