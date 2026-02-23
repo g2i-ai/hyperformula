@@ -105,7 +105,7 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
    */
   public toDate(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('TO_DATE'),
-      (serial: number) => this.arithmeticHelper.ExtendedNumberFactory(serial, {type: NumberType.NUMBER_DATE})
+      (serial: number) => serial
     )
   }
 
@@ -186,7 +186,7 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
    */
   private findCategory(unit: string): string | null {
     return Object.keys(GoogleSheetsConversionPlugin.CONVERSION_TABLE).find(
-      category => unit in GoogleSheetsConversionPlugin.CONVERSION_TABLE[category]
+      category => Object.prototype.hasOwnProperty.call(GoogleSheetsConversionPlugin.CONVERSION_TABLE[category], unit)
     ) ?? null
   }
 
