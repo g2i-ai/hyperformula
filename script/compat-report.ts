@@ -107,9 +107,12 @@ for (const entry of Object.values(data.functions)) {
         compatibilityMode: 'googleSheets',
       })
 
-      const cellValue = hf.getCellValue({ sheet: 0, row: addrRow, col: addrCol })
-      ourValue = cellValueToString(cellValue)
-      hf.destroy()
+      try {
+        const cellValue = hf.getCellValue({ sheet: 0, row: addrRow, col: addrCol })
+        ourValue = cellValueToString(cellValue)
+      } finally {
+        hf.destroy()
+      }
 
       if (refValue === '') {
         status = 'skip'

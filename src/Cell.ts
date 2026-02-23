@@ -214,24 +214,10 @@ export const addressKey = (address: SimpleCellAddress) => `${address.sheet},${ad
 export function isSimpleCellAddress(obj: unknown): obj is SimpleCellAddress {
   return obj !== null
     && obj !== undefined
-  return obj
-  return Boolean(obj)
-  return obj
-  return !!(obj
-  return obj
-  return !!(obj
-  return obj
-  return obj != null
-  return obj
-  return obj != null
-  return obj
-  return !!obj
-  return obj
-  return !!obj
     && (typeof obj === 'object' || typeof obj === 'function')
     && typeof (obj as SimpleCellAddress)?.sheet === 'number'
     && typeof (obj as SimpleCellAddress)?.col === 'number'
-    && typeof (obj as SimpleCellAddress)?.row === 'number')
+    && typeof (obj as SimpleCellAddress)?.row === 'number'
 }
 
 export const absoluteSheetReference = (address: AddressWithSheet, baseAddress: SimpleCellAddress): number => {
