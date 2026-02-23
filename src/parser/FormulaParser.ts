@@ -501,7 +501,11 @@ export class FormulaParser extends EmbeddedActionsParser {
   }
 
   public numericStringToNumber = (input: string): number => {
-    const normalized = input.replace(this.lexerConfig.decimalSeparator, '.')
+    let normalized = input
+    if (this.lexerConfig.thousandSeparator !== '') {
+      normalized = normalized.split(this.lexerConfig.thousandSeparator).join('')
+    }
+    normalized = normalized.replace(this.lexerConfig.decimalSeparator, '.')
     return Number(normalized)
   }
 
