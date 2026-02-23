@@ -461,7 +461,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         const set = this.dateTimeHelper.numberToSimpleDate(settlement)
         const monthsDiff = (mat.year - set.year) * 12 + (mat.month - set.month)
         const monthsPerCoupon = 12 / frequency
-        return Math.ceil(monthsDiff / monthsPerCoupon)
+        return Math.max(1, Math.ceil(monthsDiff / monthsPerCoupon))
       }
     )
   }

@@ -117,6 +117,22 @@ describe('GoogleSheetsDatabasePlugin', () => {
     hf.destroy()
   })
 
+  it('DSUM with bare numeric criterion matches numeric cells', () => {
+    // Bare number 30 in criteria must match numeric cell value 30 (Age column)
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [30],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Alice has Age=30, Salary=90000
+    expect(hf.getCellValue(adr('A11'))).toBe(90000)
+    hf.destroy()
+  })
+
   // ---------------------------------------------------------------------------
   // DAVERAGE
   // ---------------------------------------------------------------------------

@@ -48,7 +48,9 @@ function parseCriterion(raw: string): ParsedCriterion {
   }
 
   const isWildcard = /[*?]/.test(raw)
-  return {operator: '=', value: raw, isWildcard}
+  const numericValue = Number(raw)
+  const value = !isWildcard && !isNaN(numericValue) && raw.trim() !== '' ? numericValue : raw
+  return {operator: '=', value, isWildcard}
 }
 
 /**

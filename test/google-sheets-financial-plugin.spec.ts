@@ -220,6 +220,13 @@ describe('GoogleSheetsFinancialPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('returns at least 1 when settlement and maturity are in the same month', () => {
+      // June 14 → June 15 same month: monthsDiff=0 but there is still 1 coupon at maturity
+      const hf = build([['=COUPNUM(DATE(2024,6,14), DATE(2024,6,15), 1, 0)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(1)
+      hf.destroy()
+    })
   })
 
   // -------------------------------------------------------------------------
