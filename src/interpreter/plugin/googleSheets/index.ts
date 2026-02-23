@@ -5,6 +5,7 @@
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
+import {GoogleSheetsFinancialPlugin} from './GoogleSheetsFinancialPlugin'
 
 /**
  * Google Sheets override plugins.
@@ -16,6 +17,7 @@ import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsFinancialPlugin,
 ]
 
-export {GoogleSheetsTextPlugin}
+export {GoogleSheetsTextPlugin, GoogleSheetsFinancialPlugin}
