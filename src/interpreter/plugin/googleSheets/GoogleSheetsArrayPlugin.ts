@@ -25,7 +25,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'sort',
       sizeOfResultArrayMethod: 'sortArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER, defaultValue: 1},
@@ -37,7 +36,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'unique',
       sizeOfResultArrayMethod: 'uniqueArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
       ],
@@ -46,7 +44,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'flatten',
       sizeOfResultArrayMethod: 'flattenArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
       ],
@@ -56,7 +53,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'choosecols',
       sizeOfResultArrayMethod: 'choosecolsArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER},
@@ -67,7 +63,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'chooserows',
       sizeOfResultArrayMethod: 'chooserowsArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER},
@@ -78,7 +73,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'hstack',
       sizeOfResultArrayMethod: 'hstackArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE},
@@ -89,7 +83,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'vstack',
       sizeOfResultArrayMethod: 'vstackArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE},
@@ -100,7 +93,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'wrapcols',
       sizeOfResultArrayMethod: 'wrapcolsArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
@@ -111,7 +103,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'wraprows',
       sizeOfResultArrayMethod: 'wraprowsArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
@@ -122,7 +113,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'tocol',
       sizeOfResultArrayMethod: 'tocolArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3},
@@ -133,7 +123,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'torow',
       sizeOfResultArrayMethod: 'torowArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3},
@@ -155,7 +144,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'frequency',
       sizeOfResultArrayMethod: 'frequencyArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE},
@@ -166,13 +154,11 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
       ],
-      doesNotNeedArgumentsToBeComputed: true,
     },
     'MINVERSE': {
       method: 'minverse',
       sizeOfResultArrayMethod: 'minverseArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
       ],
@@ -189,7 +175,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'growth',
       sizeOfResultArrayMethod: 'growthArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
@@ -201,7 +186,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'trend',
       sizeOfResultArrayMethod: 'trendArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
@@ -213,7 +197,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'linest',
       sizeOfResultArrayMethod: 'linestArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
@@ -225,7 +208,6 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       method: 'logest',
       sizeOfResultArrayMethod: 'logestArraySize',
       vectorizationForbidden: true,
-      doesNotNeedArgumentsToBeComputed: true,
       parameters: [
         {argumentType: FunctionArgumentType.RANGE},
         {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
