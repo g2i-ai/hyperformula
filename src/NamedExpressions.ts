@@ -6,6 +6,7 @@
 import {simpleCellAddress, SimpleCellAddress} from './Cell'
 import {Maybe} from './Maybe'
 import {Ast, AstNodeType} from './parser'
+import {columnLabelToIndex} from './parser/addressRepresentationConverters'
 import {
   CELL_REFERENCE_PATTERN,
   NAMED_EXPRESSION_PATTERN,
@@ -175,16 +176,38 @@ export class NamedExpressions {
    *
    * The naming rules follow the [OpenDocument](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part4-formula/OpenDocument-v1.3-os-part4-formula.html#__RefHeading__1017964_715980110) standard.
    */
-  public isNameValid(expressionName: string): boolean {
+  public isNameValid(
+    expressionName: string,
+    compatibilityMode: 'default' | 'googleSheets' = 'default',
+    maxColumns: number = 18278,
+  ): boolean {
     const a1CellRefRegexp = new RegExp(`^${CELL_REFERENCE_PATTERN}$`)
     const r1c1CellRefRegexp = new RegExp(`^${R1C1_CELL_REFERENCE_PATTERN}$`)
     const namedExpRegexp = new RegExp(`^${NAMED_EXPRESSION_PATTERN}$`)
 
-    if (a1CellRefRegexp.test(expressionName) || r1c1CellRefRegexp.test(expressionName)) {
+    if (r1c1CellRefRegexp.test(expressionName)) {
       return false
     }
 
-    return namedExpRegexp.test(expressionName)
+    if (!namedExpRegexp.test(expressionName)) {
+      return false
+    }
+
+    if (a1CellRefRegexp.test(expressionName)) {
+      if (compatibilityMode === 'googleSheets') {
+        // In GSheets mode, names that look like cell refs with out-of-range columns are valid
+        const colMatch = expressionName.match(/^\$?([A-Za-z]+)\$?[0-9]+$/)
+        if (colMatch) {
+          const colIndex = columnLabelToIndex(colMatch[1])
+          if (colIndex >= maxColumns) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    return true
   }
 
   public addNamedExpression(expressionName: string, sheetId?: number, options?: NamedExpressionOptions, isInternal: boolean = false): InternalNamedExpression {

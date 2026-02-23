@@ -67,6 +67,7 @@ describe('Google Sheets config preset', () => {
     expect(mergedConfig.dateFormats).toEqual(['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'])
     expect(mergedConfig.localeLang).toBe('en-US')
     expect(mergedConfig.currencySymbol).toEqual(['$', 'USD'])
+    expect(mergedConfig.thousandSeparator).toBe(',')
   })
 
   it('should restore default preset when switching back via mergeConfig', () => {
@@ -76,6 +77,21 @@ describe('Google Sheets config preset', () => {
     expect(mergedConfig.dateFormats).toEqual(['DD/MM/YYYY', 'DD/MM/YY'])
     expect(mergedConfig.localeLang).toBe('en')
     expect(mergedConfig.currencySymbol).toEqual(['$'])
+    expect(mergedConfig.thousandSeparator).toBe('')
+  })
+
+  it('should apply explicit thousandSeparator when switching to GSheets mode', () => {
+    const config = new Config({ licenseKey: 'gpl-v3' })
+    const mergedConfig = config.mergeConfig({ compatibilityMode: 'googleSheets', thousandSeparator: '' })
+
+    expect(mergedConfig.thousandSeparator).toBe('')
+  })
+
+  it('should apply explicit thousandSeparator when switching back to default mode', () => {
+    const config = new Config({ licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' })
+    const mergedConfig = config.mergeConfig({ compatibilityMode: 'default', thousandSeparator: ' ' })
+
+    expect(mergedConfig.thousandSeparator).toBe(' ')
   })
 
   it('should apply GSheets defaults after switching mode with updateConfig', () => {
@@ -155,39 +171,41 @@ describe('Google Sheets named expression auto-registration', () => {
     hf.destroy()
   })
 
-  it('should not overwrite user-defined TRUE named expression', () => {
+  it('should treat TRUE/FALSE as parser keywords that cannot be shadowed by named expressions', () => {
     const hf = HyperFormula.buildFromArray([
       ['=TRUE'],
     ], { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' },
       [{ name: 'TRUE', expression: '=42' }])
 
-    expect(hf.getCellValue(adr('A1'))).toBe(42)
+    // In GSheets mode, TRUE is a parser keyword — named expressions cannot shadow it
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
     hf.destroy()
   })
 
-  it('should still register global TRUE when only a sheet-scoped TRUE exists', () => {
+  it('should treat TRUE as parser keyword regardless of sheet-scoped named expressions', () => {
     const hf = HyperFormula.buildFromSheets({
       Sheet1: [['=TRUE']],
       Sheet2: [['=TRUE']],
     }, { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' },
       [{ name: 'TRUE', expression: '=42', scope: 0 }])
 
-    expect(hf.getCellValue(adr('A1', 0))).toBe(42)
+    // TRUE is a keyword in both sheets
+    expect(hf.getCellValue(adr('A1', 0))).toBe(true)
     expect(hf.getCellValue(adr('A1', 1))).toBe(true)
     hf.destroy()
   })
 
-  it('should not overwrite user-defined FALSE named expression', () => {
+  it('should treat FALSE as parser keyword that cannot be shadowed', () => {
     const hf = HyperFormula.buildFromArray([
       ['=FALSE'],
     ], { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' },
       [{ name: 'FALSE', expression: '=99' }])
 
-    expect(hf.getCellValue(adr('A1'))).toBe(99)
+    expect(hf.getCellValue(adr('A1'))).toBe(false)
     hf.destroy()
   })
 
-  it('should not keep auto-registered TRUE/FALSE after switching from googleSheets to default', () => {
+  it('should normalize TRUE/FALSE to function calls after switching from googleSheets to default', () => {
     const hf = HyperFormula.buildFromArray([
       ['=TRUE', '=FALSE'],
     ], { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' })
@@ -197,12 +215,15 @@ describe('Google Sheets named expression auto-registration', () => {
 
     hf.updateConfig({ compatibilityMode: 'default' })
 
-    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(Object)
-    expect(hf.getCellValue(adr('B1'))).toBeInstanceOf(Object)
+    // After switching modes, formulas get serialized and re-parsed.
+    // GSheets mode parsed =TRUE as ProcedureAst('TRUE', []), which serializes as =TRUE().
+    // =TRUE() is valid in default mode too, so the value is still correct.
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
+    expect(hf.getCellValue(adr('B1'))).toBe(false)
     hf.destroy()
   })
 
-  it('should keep user-defined TRUE/FALSE after switching from googleSheets to default', () => {
+  it('should normalize TRUE/FALSE to function calls even when user named expressions exist', () => {
     const hf = HyperFormula.buildFromArray([
       ['=TRUE', '=FALSE'],
     ], { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' }, [
@@ -210,13 +231,16 @@ describe('Google Sheets named expression auto-registration', () => {
       { name: 'FALSE', expression: '=99' },
     ])
 
-    expect(hf.getCellValue(adr('A1'))).toBe(42)
-    expect(hf.getCellValue(adr('B1'))).toBe(99)
+    // In GSheets mode, parser keywords take precedence over named expressions
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
+    expect(hf.getCellValue(adr('B1'))).toBe(false)
 
     hf.updateConfig({ compatibilityMode: 'default' })
 
-    expect(hf.getCellValue(adr('A1'))).toBe(42)
-    expect(hf.getCellValue(adr('B1'))).toBe(99)
+    // After switching, formulas were normalized to =TRUE()/=FALSE() (function form),
+    // so they still evaluate as boolean functions, not named expressions
+    expect(hf.getCellValue(adr('A1'))).toBe(true)
+    expect(hf.getCellValue(adr('B1'))).toBe(false)
     hf.destroy()
   })
 })

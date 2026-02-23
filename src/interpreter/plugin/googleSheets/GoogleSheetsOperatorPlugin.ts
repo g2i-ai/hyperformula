@@ -7,7 +7,7 @@ import {CellError, ErrorType} from '../../../Cell'
 import {ErrorMessage} from '../../../error-message'
 import {ProcedureAst} from '../../../parser'
 import {InterpreterState} from '../../InterpreterState'
-import {ExtendedNumber, InternalNoErrorScalarValue, InterpreterValue} from '../../InterpreterValue'
+import {InterpreterValue} from '../../InterpreterValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 
 /**
@@ -19,116 +19,109 @@ import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, Implement
  * - Text: CONCAT
  * - Unary: UMINUS, UPLUS, UNARY_PERCENT
  * - Utility: ISBETWEEN
- *
- * All arithmetic operations delegate to ArithmeticHelper to ensure
- * epsilon rounding and ExtendedNumber type preservation (dates, percents,
- * currencies) consistent with the rest of the engine.
- *
- * All comparison operations delegate to ArithmeticHelper.compare() to
- * ensure locale-aware string collation and correct cross-type ordering.
  */
 export class GoogleSheetsOperatorPlugin extends FunctionPlugin implements FunctionPluginTypecheck<GoogleSheetsOperatorPlugin> {
   public static implementedFunctions: ImplementedFunctions = {
     'ADD': {
       method: 'add',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'MINUS': {
       method: 'minus',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'MULTIPLY': {
       method: 'multiply',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'DIVIDE': {
       method: 'divide',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'POW': {
       method: 'pow',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'GT': {
       method: 'gt',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'GTE': {
       method: 'gte',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'LT': {
       method: 'lt',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'LTE': {
       method: 'lte',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'EQ': {
       method: 'eq',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'NE': {
       method: 'ne',
       parameters: [
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
-        {argumentType: FunctionArgumentType.NOERROR, passSubtype: true},
+        {argumentType: FunctionArgumentType.SCALAR},
+        {argumentType: FunctionArgumentType.SCALAR},
       ],
     },
     'CONCAT': {
       method: 'concat',
       parameters: [
-        {argumentType: FunctionArgumentType.STRING, passSubtype: true},
-        {argumentType: FunctionArgumentType.STRING, passSubtype: true},
+        {argumentType: FunctionArgumentType.STRING},
+        {argumentType: FunctionArgumentType.STRING},
       ],
     },
     'UMINUS': {
       method: 'uminus',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'UPLUS': {
       method: 'uplus',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'UNARY_PERCENT': {
       method: 'unaryPercent',
       parameters: [
-        {argumentType: FunctionArgumentType.NUMBER, passSubtype: true},
+        {argumentType: FunctionArgumentType.NUMBER},
       ],
     },
     'ISBETWEEN': {
@@ -144,101 +137,106 @@ export class GoogleSheetsOperatorPlugin extends FunctionPlugin implements Functi
   }
 
   /**
-   * ADD(a, b) - Returns a + b with epsilon rounding and type preservation.
+   * ADD(a, b) - Returns a + b
    */
   public add(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ADD'),
-      this.arithmeticHelper.addWithEpsilon
+      (a: number, b: number) => a + b
     )
   }
 
   /**
-   * MINUS(a, b) - Returns a - b with epsilon rounding and type preservation.
+   * MINUS(a, b) - Returns a - b
    */
   public minus(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('MINUS'),
-      this.arithmeticHelper.subtract
+      (a: number, b: number) => a - b
     )
   }
 
   /**
-   * MULTIPLY(a, b) - Returns a * b with type preservation.
+   * MULTIPLY(a, b) - Returns a * b
    */
   public multiply(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('MULTIPLY'),
-      this.arithmeticHelper.multiply
+      (a: number, b: number) => a * b
     )
   }
 
   /**
-   * DIVIDE(a, b) - Returns a / b with type preservation, or DIV_BY_ZERO error if b = 0.
+   * DIVIDE(a, b) - Returns a / b, or DIV_BY_ZERO error if b = 0
    */
   public divide(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('DIVIDE'),
-      this.arithmeticHelper.divide
+      (a: number, b: number) => {
+        if (b === 0) {
+          return new CellError(ErrorType.DIV_BY_ZERO)
+        }
+        return a / b
+      }
     )
   }
 
   /**
-   * POW(a, b) - Returns a raised to the power of b.
+   * POW(a, b) - Returns a raised to the power of b
    */
   public pow(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('POW'),
-      this.arithmeticHelper.pow
+      (a: number, b: number) => Math.pow(a, b)
     )
   }
 
   /**
-   * GT(a, b) - Returns true if a > b using locale-aware comparison.
+   * GT(a, b) - Returns true if a > b
    */
   public gt(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('GT'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.gt(a, b)
+      (a: any, b: any) => a > b
     )
   }
 
   /**
-   * GTE(a, b) - Returns true if a >= b using locale-aware comparison.
+   * GTE(a, b) - Returns true if a >= b
    */
   public gte(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('GTE'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.geq(a, b)
+      (a: any, b: any) => a >= b
     )
   }
 
   /**
-   * LT(a, b) - Returns true if a < b using locale-aware comparison.
+   * LT(a, b) - Returns true if a < b
    */
   public lt(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('LT'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.lt(a, b)
+      (a: any, b: any) => a < b
     )
   }
 
   /**
-   * LTE(a, b) - Returns true if a <= b using locale-aware comparison.
+   * LTE(a, b) - Returns true if a <= b
    */
   public lte(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('LTE'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.leq(a, b)
+      (a: any, b: any) => a <= b
     )
   }
 
   /**
-   * EQ(a, b) - Returns true if a == b using locale-aware comparison.
+   * EQ(a, b) - Returns true if a === b
    */
   public eq(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('EQ'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.eq(a, b)
+      (a: any, b: any) => a === b
     )
   }
 
   /**
-   * NE(a, b) - Returns true if a != b using locale-aware comparison.
+   * NE(a, b) - Returns true if a !== b
    */
   public ne(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('NE'),
-      (a: InternalNoErrorScalarValue, b: InternalNoErrorScalarValue) => this.arithmeticHelper.neq(a, b)
+      (a: any, b: any) => a !== b
     )
   }
 
@@ -247,56 +245,45 @@ export class GoogleSheetsOperatorPlugin extends FunctionPlugin implements Functi
    */
   public concat(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('CONCAT'),
-      this.arithmeticHelper.concat
+      (a: string, b: string) => String(a) + String(b)
     )
   }
 
   /**
-   * UMINUS(a) - Returns -a (negation) with type preservation.
+   * UMINUS(a) - Returns -a (negation)
    */
   public uminus(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('UMINUS'),
-      this.arithmeticHelper.unaryMinus
+      (a: number) => -a
     )
   }
 
   /**
-   * UPLUS(a) - Returns +a (identity).
+   * UPLUS(a) - Returns +a (identity)
    */
   public uplus(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('UPLUS'),
-      (a: ExtendedNumber) => a
+      (a: number) => +a
     )
   }
 
   /**
-   * UNARY_PERCENT(a) - Returns a / 100 as a PercentNumber.
+   * UNARY_PERCENT(a) - Returns a / 100
    */
   public unaryPercent(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('UNARY_PERCENT'),
-      this.arithmeticHelper.unaryPercent
+      (a: number) => a / 100
     )
   }
 
   /**
-   * ISBETWEEN(val, lo, hi, loInc, hiInc) - Returns true if val is in [lo, hi].
-   *
-   * Uses epsilon-aware floatCmp for all comparisons to stay consistent with
-   * GTE/LTE and avoid false negatives at floating-point boundaries (e.g. 0.1+0.2 vs 0.3).
-   *
-   * Returns #NUM! error when lo > hi (epsilon-aware), matching Google Sheets behavior.
+   * ISBETWEEN(val, lo, hi, loInc, hiInc) - Returns true if lo <= val <= hi (or < / > based on inclusive flags)
    */
   public isbetween(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ISBETWEEN'),
       (val: number, lo: number, hi: number, loInc: boolean, hiInc: boolean) => {
-        const cmpLoHi = this.arithmeticHelper.floatCmp(lo, hi)
-        if (cmpLoHi > 0) {
-          return new CellError(ErrorType.NUM, ErrorMessage.WrongOrder)
-        }
-        const cmpValLo = this.arithmeticHelper.floatCmp(val, lo)
-        const cmpValHi = this.arithmeticHelper.floatCmp(val, hi)
-        const lowerOk = loInc ? cmpValLo >= 0 : cmpValLo > 0
-        const upperOk = hiInc ? cmpValHi <= 0 : cmpValHi < 0
+        const lowerOk = loInc ? val >= lo : val > lo
+        const upperOk = hiInc ? val <= hi : val < hi
         return lowerOk && upperOk
       }
     )

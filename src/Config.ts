@@ -24,12 +24,13 @@ import {Maybe} from './Maybe'
 import {ParserConfig} from './parser/ParserConfig'
 import {ConfigParams, ConfigParamsList} from './ConfigParams'
 
-type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol'>
+type GoogleSheetsDefaults = Pick<ConfigParams, 'dateFormats' | 'localeLang' | 'currencySymbol' | 'thousandSeparator'>
 
 const googleSheetsDefaults: GoogleSheetsDefaults = {
   dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
   localeLang: 'en-US',
   currencySymbol: ['$', 'USD'],
+  thousandSeparator: ',',
 }
 
 const privatePool: WeakMap<Config, { licenseKeyValidityState: LicenseKeyValidityState }> = new WeakMap()
@@ -278,6 +279,9 @@ export class Config implements ConfigParams, ParserConfig {
       if (currencySymbol === undefined) {
         this.currencySymbol = [...googleSheetsDefaults.currencySymbol]
       }
+      if (thousandSeparator === undefined) {
+        this.thousandSeparator = googleSheetsDefaults.thousandSeparator
+      }
     }
 
     privatePool.set(this, {
@@ -287,8 +291,20 @@ export class Config implements ConfigParams, ParserConfig {
     configCheckIfParametersNotInConflict(
       {value: this.decimalSeparator, name: 'decimalSeparator'},
       {value: this.functionArgSeparator, name: 'functionArgSeparator'},
-      {value: this.thousandSeparator, name: 'thousandSeparator'},
     )
+
+    if (this.thousandSeparator !== '') {
+      const separatorsToCheck: { value: string, name: string }[] = [
+        {value: this.decimalSeparator, name: 'decimalSeparator'},
+        {value: this.thousandSeparator, name: 'thousandSeparator'},
+      ]
+      // In GSheets mode, thousandSeparator intentionally equals functionArgSeparator (both ',').
+      // Outside GSheets mode, this conflict must be caught.
+      if (this.compatibilityMode !== 'googleSheets') {
+        separatorsToCheck.push({value: this.functionArgSeparator, name: 'functionArgSeparator'})
+      }
+      configCheckIfParametersNotInConflict(...separatorsToCheck)
+    }
 
     configCheckIfParametersNotInConflict(
       {value: this.arrayRowSeparator, name: 'arrayRowSeparator'},
@@ -338,6 +354,7 @@ export class Config implements ConfigParams, ParserConfig {
         dateFormats: mergedDateFormats,
         localeLang: mergedLocaleLang,
         currencySymbol: mergedCurrencySymbol,
+        thousandSeparator: mergedThousandSeparator,
         ...remainingConfig
       } = mergedConfig
 
@@ -346,6 +363,7 @@ export class Config implements ConfigParams, ParserConfig {
         ...(init.dateFormats !== undefined ? {dateFormats: mergedDateFormats} : {}),
         ...(init.localeLang !== undefined ? {localeLang: mergedLocaleLang} : {}),
         ...(init.currencySymbol !== undefined ? {currencySymbol: mergedCurrencySymbol} : {}),
+        ...(init.thousandSeparator !== undefined ? {thousandSeparator: mergedThousandSeparator} : {}),
       }
     }
 
