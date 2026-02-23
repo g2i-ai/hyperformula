@@ -7,10 +7,10 @@
  * in column A has empty cells to spill into.
  */
 
-import {DetailedCellError, HyperFormula} from '../src'
-import {adr} from './testUtils'
+import { DetailedCellError, HyperFormula } from '../src'
+import { adr } from './testUtils'
 
-const gsOptions = {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'} as const
+const gsOptions = { licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' } as const
 
 // ─── SORT ────────────────────────────────────────────────────────────────────
 
@@ -725,6 +725,28 @@ describe('LINEST', () => {
     expect(hf.getCellValue(adr('A3'))).toBeCloseTo(1)   // r²
     hf.destroy()
   })
+
+  it('uses uncentered sums of squares for r2 when const=FALSE and stats=TRUE', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A8:A10,B8:B10,FALSE(),TRUE())', null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [3, 1, null, null, null, null],
+      [5, 2, null, null, null, null],
+      [7, 3, null, null, null, null],
+    ], gsOptions)
+
+    const slope = 34 / 14
+    const yHat = [1, 2, 3].map(x => slope * x)
+    const expectedRSquared = yHat.reduce((sum, y) => sum + y * y, 0) / [3, 5, 7].reduce((sum, y) => sum + y * y, 0)
+
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(expectedRSquared)
+    hf.destroy()
+  })
 })
 
 // ─── LOGEST ───────────────────────────────────────────────────────────────────
@@ -754,6 +776,29 @@ describe('LOGEST', () => {
     ], gsOptions)
 
     expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('uses uncentered sums of squares for r2 when const=FALSE and stats=TRUE', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A8:A10,B8:B10,FALSE(),TRUE())', null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+      [3, 1, null, null, null, null],
+      [5, 2, null, null, null, null],
+      [7, 3, null, null, null, null],
+    ], gsOptions)
+
+    const lnY = [3, 5, 7].map(y => Math.log(y))
+    const slope = [1, 2, 3].reduce((sum, x, i) => sum + x * lnY[i], 0) / [1, 2, 3].reduce((sum, x) => sum + x * x, 0)
+    const yHat = [1, 2, 3].map(x => slope * x)
+    const expectedRSquared = yHat.reduce((sum, y) => sum + y * y, 0) / lnY.reduce((sum, y) => sum + y * y, 0)
+
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(expectedRSquared)
     hf.destroy()
   })
 })
