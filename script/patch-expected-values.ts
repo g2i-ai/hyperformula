@@ -111,5 +111,3 @@ if (notFound > 0) {
     console.log(`    ... and ${missing.length - 10} more`);
   }
 }
-
-export { parseGSheetsValue };

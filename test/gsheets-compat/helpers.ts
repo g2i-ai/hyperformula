@@ -175,9 +175,11 @@ export function valuesMatch(ours: string, ref: string): boolean {
   const BOOL_VALS = new Set(['TRUE', 'FALSE'])
   if (BOOL_VALS.has(a.toUpperCase()) && a.toUpperCase() === b.toUpperCase()) return true
 
-  // Numeric comparison with relative tolerance
-  const numA = parseFloat(a)
-  const numB = parseFloat(b)
+  // Numeric comparison with relative tolerance.
+  // Use Number() (not parseFloat) to avoid false positives: parseFloat("4-9i")
+  // and parseFloat("7/20/1969") extract leading digits, making different values match.
+  const numA = Number(a)
+  const numB = Number(b)
   if (!isNaN(numA) && !isNaN(numB)) {
     if (numA === 0 && numB === 0) return true
     const denom = Math.max(Math.abs(numA), Math.abs(numB))
