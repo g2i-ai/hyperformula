@@ -156,7 +156,9 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
     const argNode = ast.args[0]
     if (argNode.type === AstNodeType.CELL_REFERENCE) {
       const address = argNode.reference.toSimpleCellAddress(state.formulaAddress)
-      const vertex = this.dependencyGraph.getCell(address)
+      // Use addressMapping.getCell directly to avoid NoSheetWithIdError
+      // when the sheet has been removed (DependencyGraph.getCell throws)
+      const vertex = this.dependencyGraph.addressMapping.getCell(address)
       if (vertex instanceof ArrayFormulaVertex && vertex.isLeftCorner(address)) {
         return 64 // Array type
       }
