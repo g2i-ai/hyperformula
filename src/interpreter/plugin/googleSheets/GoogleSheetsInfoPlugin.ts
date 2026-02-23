@@ -177,7 +177,7 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
    */
   public isemail(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ISEMAIL'), (email: string) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
       return emailRegex.test(email)
     })
   }
