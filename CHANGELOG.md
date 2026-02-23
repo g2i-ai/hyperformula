@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed `updateConfig({compatibilityMode: 'default'})` to restore default `dateFormats`, `localeLang`, and `currencySymbol` when switching from Google Sheets mode without explicit overrides.
 - Fixed Google Sheets compatibility mode to auto-register internal `TRUE`/`FALSE` named expressions using the configured language translations instead of hardcoded English formulas.
 - Removed duplicate `updateConfig` compatibility mode transition tests from `test/compatibility-mode.spec.ts` to keep coverage non-redundant and easier to maintain.
+- Fixed dependency tracking for Google Sheets array functions so formulas like `SORT`, `UNIQUE`, `FREQUENCY`, `LINEST`, and `LOGEST` recalculate when referenced cells change.
 ## [3.2.0] - 2026-02-19
 
 ### Added
