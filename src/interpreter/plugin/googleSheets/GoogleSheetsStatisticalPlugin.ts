@@ -13,6 +13,7 @@ import {SimpleRangeValue} from '../../../SimpleRangeValue'
 import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
 import {Condition, CriterionFunctionCompute} from '../../CriterionFunctionCompute'
 import {Maybe} from '../../../Maybe'
+import {erf as jstatErf} from '../3rdparty/jstat/jstat'
 
 /** Result accumulator for AVERAGEIFS. */
 class AverageResult {
@@ -57,6 +58,41 @@ function extractNumbersFromRange(range: SimpleRangeValue): number[] {
     }
   }
   return nums
+}
+
+/**
+ * Extracts matched numeric pairs from two ranges of equal shape.
+ *
+ * Iterates both ranges in lockstep and includes a pair only when both
+ * corresponding cells are numeric. This preserves alignment when either
+ * range contains non-numeric (text, blank, error) cells.
+ *
+ * @returns An object with two arrays of equal length containing the matched numeric values.
+ */
+function extractNumericPairs(
+  rangeA: SimpleRangeValue,
+  rangeB: SimpleRangeValue,
+): { a: number[], b: number[] } {
+  const a: number[] = []
+  const b: number[] = []
+
+  const cellsA = rangeA.data.flatMap(row => row)
+  const cellsB = rangeB.data.flatMap(row => row)
+
+  for (let i = 0; i < Math.min(cellsA.length, cellsB.length); i++) {
+    const va = cellsA[i]
+    const vb = cellsB[i]
+
+    const numA = typeof va === 'number' ? va : isExtendedNumber(va) ? va.val : null
+    const numB = typeof vb === 'number' ? vb : isExtendedNumber(vb) ? vb.val : null
+
+    if (numA !== null && numB !== null) {
+      a.push(numA)
+      b.push(numB)
+    }
+  }
+
+  return {a, b}
 }
 
 /**
@@ -305,14 +341,21 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
    * FORECAST(x, known_y, known_x) / FORECAST.LINEAR(x, known_y, known_x)
    *
    * Predicts a y-value for the given x using linear regression on the known data.
+   * Ranges must have the same total cell count. Within equal-sized ranges,
+   * non-numeric cells are skipped in lockstep to preserve pairing.
    */
   public forecast(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata(ast.procedureName),
       (x: number, knownYRange: SimpleRangeValue, knownXRange: SimpleRangeValue) => {
-        const knownY = extractNumbersFromRange(knownYRange)
-        const knownX = extractNumbersFromRange(knownXRange)
+        const totalY = knownYRange.data.reduce((sum, row) => sum + row.length, 0)
+        const totalX = knownXRange.data.reduce((sum, row) => sum + row.length, 0)
+        if (totalY !== totalX) {
+          return new CellError(ErrorType.NA, ErrorMessage.EqualLength)
+        }
 
-        if (knownY.length !== knownX.length || knownY.length < 2) {
+        const {a: knownY, b: knownX} = extractNumericPairs(knownYRange, knownXRange)
+
+        if (knownY.length < 2) {
           return new CellError(ErrorType.NA, ErrorMessage.EqualLength)
         }
 
@@ -329,14 +372,21 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
    * INTERCEPT(known_y, known_x)
    *
    * Returns the y-intercept of the linear regression line through the known data points.
+   * Ranges must have the same total cell count. Within equal-sized ranges,
+   * non-numeric cells are skipped in lockstep to preserve pairing.
    */
   public intercept(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('INTERCEPT'),
       (knownYRange: SimpleRangeValue, knownXRange: SimpleRangeValue) => {
-        const knownY = extractNumbersFromRange(knownYRange)
-        const knownX = extractNumbersFromRange(knownXRange)
+        const totalY = knownYRange.data.reduce((sum, row) => sum + row.length, 0)
+        const totalX = knownXRange.data.reduce((sum, row) => sum + row.length, 0)
+        if (totalY !== totalX) {
+          return new CellError(ErrorType.NA, ErrorMessage.EqualLength)
+        }
 
-        if (knownY.length !== knownX.length || knownY.length < 2) {
+        const {a: knownY, b: knownX} = extractNumericPairs(knownYRange, knownXRange)
+
+        if (knownY.length < 2) {
           return new CellError(ErrorType.NA, ErrorMessage.EqualLength)
         }
 
@@ -405,7 +455,8 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
    * PERCENTRANK.INC(data, x, [significance]) / PERCENTRANK(data, x, [significance])
    *
    * Returns the rank of x in data as a percentage (0 to 1 inclusive).
-   * Uses rank / (n - 1) formula.
+   * Uses rank / (n - 1) formula. For a single-element dataset where x equals
+   * that element, returns 0 (matching Google Sheets behavior).
    */
   public percentrankInc(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     const name = ast.procedureName === 'PERCENTRANK.INC' ? 'PERCENTRANK.INC' : 'PERCENTRANK'
@@ -417,6 +468,9 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
         }
         if (x < nums[0] || x > nums[nums.length - 1]) {
           return new CellError(ErrorType.NA)
+        }
+        if (nums.length === 1) {
+          return 0
         }
 
         const rank = this.computePercentRank(nums, x)
@@ -664,10 +718,11 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
    * ERF.PRECISE(x)
    *
    * Returns the error function integrated from 0 to x. Single-argument variant of ERF.
+   * Uses the high-precision Chebyshev-series implementation from jstat (error < 1e-14).
    */
   public erfPrecise(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ERF.PRECISE'),
-      (x: number) => this.erf(x)
+      (x: number) => jstatErf(x)
     )
   }
 
@@ -675,10 +730,11 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
    * ERFC.PRECISE(x)
    *
    * Returns the complementary error function: 1 - ERF(x).
+   * Uses the high-precision Chebyshev-series implementation from jstat (error < 1e-14).
    */
   public erfcPrecise(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ERFC.PRECISE'),
-      (x: number) => 1 - this.erf(x)
+      (x: number) => 1 - jstatErf(x)
     )
   }
 
@@ -700,17 +756,6 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
     const slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : Infinity
     const intercept = (sumY - slope * sumX) / n
     return {slope, intercept}
-  }
-
-  /**
-   * Computes the error function using Horner's method approximation.
-   * Maximum error: 1.5 × 10^-7.
-   */
-  private erf(x: number): number {
-    const t = 1 / (1 + 0.3275911 * Math.abs(x))
-    const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))))
-    const result = 1 - poly * Math.exp(-x * x)
-    return x < 0 ? -result : result
   }
 
   /**

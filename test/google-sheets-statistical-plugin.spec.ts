@@ -255,6 +255,42 @@ describe('GoogleSheetsStatisticalPlugin', () => {
       expect(hf.getCellValue(adr('A3'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('preserves pair alignment when known_y/known_x contain non-numeric cells', () => {
+      // known_y=[3, "text", 7], known_x=[1, 2, "text"] — only indices 0 match:
+      // Row 0: y=3, x=1 — numeric pair
+      // Row 1: y="text", x=2 — y is non-numeric, skip
+      // Row 2: y=7, x="text" — x is non-numeric, skip
+      // With only 1 numeric pair, regression requires ≥2, so NA expected.
+      const hf = HyperFormula.buildFromArray(
+        [
+          [3, 'text', 7],
+          [1, 2, 'text'],
+          ['=FORECAST(5, A1:C1, A2:C2)'],
+        ],
+        GS_CONFIG
+      )
+      expect(hf.getCellValue(adr('A3'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('uses correct numeric pairs when ranges have non-numeric cells at different positions', () => {
+      // known_y=[3, "skip", 5, 7], known_x=[1, 3, "skip", 4] — indices 0 and 3 have valid pairs:
+      // (y=3, x=1), (y=7, x=4)
+      // Regression on (1,3) and (4,7): slope=(7-3)/(4-1)=4/3, intercept=3-4/3=5/3
+      // At x=7: y = 4/3*7 + 5/3 = 28/3 + 5/3 = 11
+      const hf = HyperFormula.buildFromArray(
+        [
+          [3, 'skip', 5, 7],
+          [1, 3, 'skip', 4],
+          ['=FORECAST(7, A1:D1, A2:D2)'],
+        ],
+        GS_CONFIG
+      )
+      // With correct pairing: (y=3,x=1) and (y=7,x=4) → at x=7, y=11
+      expect(hf.getCellValue(adr('A3'))).toBeCloseTo(11, 5)
+      hf.destroy()
+    })
   })
 
   // ---------------------------------------------------------------------------
@@ -341,6 +377,25 @@ describe('GoogleSheetsStatisticalPlugin', () => {
         GS_CONFIG
       )
       expect(hf.getCellValue(adr('A2'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('PERCENTRANK.INC returns 0 for single-element dataset', () => {
+      // Google Sheets: PERCENTRANK.INC({5}, 5) = 0, not NaN
+      const hf = HyperFormula.buildFromArray(
+        [[5], ['=PERCENTRANK.INC(A1:A1, 5)']],
+        GS_CONFIG
+      )
+      expect(hf.getCellValue(adr('A2'))).toBe(0)
+      hf.destroy()
+    })
+
+    it('PERCENTRANK returns 0 for single-element dataset', () => {
+      const hf = HyperFormula.buildFromArray(
+        [[5], ['=PERCENTRANK(A1:A1, 5)']],
+        GS_CONFIG
+      )
+      expect(hf.getCellValue(adr('A2'))).toBe(0)
       hf.destroy()
     })
   })
@@ -474,6 +529,34 @@ describe('GoogleSheetsStatisticalPlugin', () => {
     it('ERF.PRECISE(x) + ERFC.PRECISE(x) = 1', () => {
       const hf = buildGS([['=ERF.PRECISE(2)+ERFC.PRECISE(2)']])
       expect(hf.getCellValue(adr('A1'))).toBeCloseTo(1, 8)
+      hf.destroy()
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // ERF.PRECISE precision — must match the high-precision jstat implementation
+  // (max error < 1e-14), not the Abramowitz & Stegun approximation (max ~1.5e-7)
+  // ---------------------------------------------------------------------------
+  describe('ERF.PRECISE high-precision requirements', () => {
+    // Known high-precision values from Wolfram Alpha / mathematical tables
+    it('ERF.PRECISE(0.5) matches high-precision value to 10 decimal places', () => {
+      // erf(0.5) = 0.5204998778130465...
+      const hf = buildGS([['=ERF.PRECISE(0.5)']])
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.5204998778130465, 10)
+      hf.destroy()
+    })
+
+    it('ERF.PRECISE(1.5) matches high-precision value to 10 decimal places', () => {
+      // erf(1.5) = 0.9661051464753108...
+      const hf = buildGS([['=ERF.PRECISE(1.5)']])
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.9661051464753108, 10)
+      hf.destroy()
+    })
+
+    it('ERFC.PRECISE(0.5) matches high-precision value to 10 decimal places', () => {
+      // erfc(0.5) = 0.4795001221869535...
+      const hf = buildGS([['=ERFC.PRECISE(0.5)']])
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(0.4795001221869535, 10)
       hf.destroy()
     })
   })
