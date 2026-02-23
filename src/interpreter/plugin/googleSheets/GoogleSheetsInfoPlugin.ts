@@ -96,6 +96,7 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
    * - NAME? → 5
    * - NUM! → 6
    * - N/A → 7
+   * - #ERROR! → 8
    *
    * @param {ProcedureAst} ast - The procedure AST node
    * @param {InterpreterState} state - The interpreter state
@@ -115,7 +116,7 @@ export class GoogleSheetsInfoPlugin extends FunctionPlugin implements FunctionPl
 
     if (val instanceof CellError) {
       const mapping: Record<string, number> = {
-        'ERROR': 1,
+        'ERROR': 8,
         'DIV_BY_ZERO': 2,
         'VALUE': 3,
         'REF': 4,
