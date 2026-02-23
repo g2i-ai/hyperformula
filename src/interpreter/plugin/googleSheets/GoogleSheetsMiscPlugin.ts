@@ -142,7 +142,8 @@ export class GoogleSheetsMiscPlugin extends FunctionPlugin implements FunctionPl
       return new CellError(ErrorType.NA)
     }
 
-    return values[bestRowIndex][1] ?? EmptyValue
+    const lastColIndex = values[0].length - 1
+    return values[bestRowIndex][lastColIndex] ?? EmptyValue
   }
 
   private lookupThreeArgument(key: InternalScalarValue, searchRange: SimpleRangeValue, resultRange: SimpleRangeValue): InternalScalarValue {

@@ -97,6 +97,17 @@ describe('GoogleSheetsMiscPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe('Bob')
       hf.destroy()
     })
+
+    it('should return from last column (not second) for 3-column arrays', () => {
+      // Google Sheets LOOKUP 2-arg: search first column, return LAST column
+      // {key, middle, result} → should return result (index 2), not middle (index 1)
+      const hf = HyperFormula.buildFromArray([
+        ['=LOOKUP(2, {1, "ignore1", "result1"; 2, "ignore2", "result2"; 3, "ignore3", "result3"})'],
+      ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+      expect(hf.getCellValue(adr('A1'))).toBe('result2')
+      hf.destroy()
+    })
   })
 
   describe('CELL', () => {
