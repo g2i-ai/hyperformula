@@ -14,7 +14,7 @@ import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, Implement
 /** Parsed criterion with operator and comparison value. */
 interface ParsedCriterion {
   operator: '=' | '<>' | '<' | '<=' | '>' | '>='
-  value: string | number
+  value: string | number | boolean
   isWildcard: boolean
 }
 
@@ -41,7 +41,11 @@ const DATABASE_PARAMETERS = [
  *   if the string is a valid number it is stored as a number so it can match numeric cells.
  * - Wildcard patterns (* and ?) are detected and handled via regex.
  */
-function parseCriterion(raw: string | number): ParsedCriterion {
+function parseCriterion(raw: string | number | boolean): ParsedCriterion {
+  if (typeof raw === 'boolean') {
+    return {operator: '=', value: raw, isWildcard: false}
+  }
+
   if (typeof raw === 'number') {
     return {operator: '=', value: raw, isWildcard: false}
   }
@@ -80,6 +84,10 @@ function wildcardToRegExp(pattern: string): RegExp {
  */
 function matchesCriterion(cellValue: InternalScalarValue, criterion: ParsedCriterion): boolean {
   if (cellValue === null || cellValue === undefined || cellValue === EmptyValue) {
+    return false
+  }
+
+  if (cellValue instanceof CellError) {
     return false
   }
 
@@ -211,9 +219,9 @@ function findMatchingRowIndices(
           return true // Empty criterion matches everything
         }
 
-        const rawCriteria: string | number = criteriaCell instanceof Object && 'val' in criteriaCell
+        const rawCriteria: string | number | boolean = criteriaCell instanceof Object && 'val' in criteriaCell
           ? (criteriaCell as {val: number}).val
-          : (typeof criteriaCell === 'number' ? criteriaCell : String(criteriaCell))
+          : (typeof criteriaCell === 'number' || typeof criteriaCell === 'boolean' ? criteriaCell : String(criteriaCell))
 
         const parsedCriterion = parseCriterion(rawCriteria)
         return matchesCriterion(row[dbColIdx], parsedCriterion)
