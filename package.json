@@ -89,6 +89,7 @@
     "gsheets:generate-tests": "ts-node --transpile-only -O '{\"module\":\"commonjs\"}' script/generate-formula-compat-tests.ts",
     "gsheets:generate-csv": "ts-node --transpile-only -O '{\"module\":\"commonjs\"}' script/generate-formula-test-csv.ts",
     "gsheets:patch-values": "ts-node --transpile-only -O '{\"module\":\"commonjs\"}' script/patch-expected-values.ts",
+    "gsheets:compat-report": "ts-node --transpile-only -O '{\"module\":\"commonjs\"}' script/compat-report.ts",
     "check:licenses": "license-checker --production --excludePackages=\"hyperformula@3.1.1\" --onlyAllow=\"MIT; Apache-2.0; BSD-3-Clause; BSD-2-Clause; ISC; BSD; Unlicense\"",
     "tsnode": "ts-node --transpile-only -O {\\\"module\\\":\\\"commonjs\\\"}"
   },
