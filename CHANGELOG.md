@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Removed duplicate `updateConfig` compatibility mode transition tests from `test/compatibility-mode.spec.ts` to keep coverage non-redundant and easier to maintain.
 - Fixed dependency tracking for Google Sheets array functions so formulas like `SORT`, `UNIQUE`, `FREQUENCY`, `LINEST`, and `LOGEST` recalculate when referenced cells change.
 - Fixed `WRAPCOLS`/`WRAPROWS` spill-size prediction for non-literal `wrap_count` values to avoid underestimating dynamic array dimensions.
+- Fixed `LINEST`/`LOGEST` no-intercept (`const=FALSE`) statistics to use uncentered sums of squares for `R²` computation.
 ## [3.2.0] - 2026-02-19
 
 ### Added

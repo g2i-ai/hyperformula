@@ -3,14 +3,14 @@
  * Copyright (c) 2025 Handsoncode. All rights reserved.
  */
 
-import {ArraySize} from '../../../ArraySize'
-import {CellError, ErrorType} from '../../../Cell'
-import {ErrorMessage} from '../../../error-message'
-import {Ast, AstNodeType, ProcedureAst} from '../../../parser'
-import {InterpreterState} from '../../InterpreterState'
-import {EmptyValue, getRawValue, InternalScalarValue, InterpreterValue, isExtendedNumber, RichNumber} from '../../InterpreterValue'
-import {SimpleRangeValue} from '../../../SimpleRangeValue'
-import {FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions} from '../FunctionPlugin'
+import { ArraySize } from '../../../ArraySize'
+import { CellError, ErrorType } from '../../../Cell'
+import { ErrorMessage } from '../../../error-message'
+import { Ast, AstNodeType, ProcedureAst } from '../../../parser'
+import { InterpreterState } from '../../InterpreterState'
+import { EmptyValue, getRawValue, InternalScalarValue, InterpreterValue, isExtendedNumber, RichNumber } from '../../InterpreterValue'
+import { SimpleRangeValue } from '../../../SimpleRangeValue'
+import { FunctionArgumentType, FunctionPlugin, FunctionPluginTypecheck, ImplementedFunctions } from '../FunctionPlugin'
 
 /**
  * Google Sheets-compatible array and matrix functions.
@@ -26,9 +26,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'sortArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER, defaultValue: 1},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER, defaultValue: 1 },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true },
       ],
       repeatLastArgs: 2,
     },
@@ -37,7 +37,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'uniqueArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
       ],
     },
     'FLATTEN': {
@@ -45,7 +45,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'flattenArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
       ],
       repeatLastArgs: 1,
     },
@@ -54,8 +54,8 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'choosecolsArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER },
       ],
       repeatLastArgs: 1,
     },
@@ -64,8 +64,8 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'chooserowsArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER },
       ],
       repeatLastArgs: 1,
     },
@@ -74,8 +74,8 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'hstackArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE },
       ],
       repeatLastArgs: 1,
     },
@@ -84,8 +84,8 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'vstackArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE },
       ],
       repeatLastArgs: 1,
     },
@@ -94,9 +94,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'wrapcolsArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
-        {argumentType: FunctionArgumentType.SCALAR, optionalArg: true},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER, minValue: 1 },
+        { argumentType: FunctionArgumentType.SCALAR, optionalArg: true },
       ],
     },
     'WRAPROWS': {
@@ -104,9 +104,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'wraprowsArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
-        {argumentType: FunctionArgumentType.SCALAR, optionalArg: true},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER, minValue: 1 },
+        { argumentType: FunctionArgumentType.SCALAR, optionalArg: true },
       ],
     },
     'TOCOL': {
@@ -114,9 +114,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'tocolArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3 },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false },
       ],
     },
     'TOROW': {
@@ -124,9 +124,9 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'torowArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.INTEGER, defaultValue: 0, minValue: 0, maxValue: 3 },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false },
       ],
     },
     'SEQUENCE': {
@@ -134,10 +134,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'sequenceArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
-        {argumentType: FunctionArgumentType.INTEGER, defaultValue: 1, minValue: 1},
-        {argumentType: FunctionArgumentType.NUMBER, defaultValue: 1},
-        {argumentType: FunctionArgumentType.NUMBER, defaultValue: 1},
+        { argumentType: FunctionArgumentType.INTEGER, minValue: 1 },
+        { argumentType: FunctionArgumentType.INTEGER, defaultValue: 1, minValue: 1 },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
+        { argumentType: FunctionArgumentType.NUMBER, defaultValue: 1 },
       ],
     },
     'FREQUENCY': {
@@ -145,14 +145,14 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'frequencyArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE },
       ],
     },
     'MDETERM': {
       method: 'mdeterm',
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
       ],
     },
     'MINVERSE': {
@@ -160,7 +160,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'minverseArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
+        { argumentType: FunctionArgumentType.RANGE },
       ],
     },
     'MUNIT': {
@@ -168,7 +168,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'munitArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.INTEGER, minValue: 1},
+        { argumentType: FunctionArgumentType.INTEGER, minValue: 1 },
       ],
     },
     'GROWTH': {
@@ -176,10 +176,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'growthArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true },
       ],
     },
     'TREND': {
@@ -187,10 +187,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'trendArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true },
       ],
     },
     'LINEST': {
@@ -198,10 +198,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'linestArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false },
       ],
     },
     'LOGEST': {
@@ -209,10 +209,10 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       sizeOfResultArrayMethod: 'logestArraySize',
       vectorizationForbidden: true,
       parameters: [
-        {argumentType: FunctionArgumentType.RANGE},
-        {argumentType: FunctionArgumentType.RANGE, optionalArg: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true},
-        {argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false},
+        { argumentType: FunctionArgumentType.RANGE },
+        { argumentType: FunctionArgumentType.RANGE, optionalArg: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: true },
+        { argumentType: FunctionArgumentType.BOOLEAN, defaultValue: false },
       ],
     },
   }
@@ -236,7 +236,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const width = rangeVal.width()
 
     // Collect sort keys: pairs of (colIndex, ascending)
-    const sortKeys: Array<{col: number, asc: boolean}> = []
+    const sortKeys: Array<{ col: number, asc: boolean }> = []
     for (let i = 1; i < ast.args.length; i += 2) {
       const colVal = this.evaluateAst(ast.args[i], state)
       const ascVal = i + 1 < ast.args.length ? this.evaluateAst(ast.args[i + 1], state) : true
@@ -249,15 +249,15 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       if (col < 1 || col > width) {
         return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
       }
-      sortKeys.push({col: col - 1, asc})
+      sortKeys.push({ col: col - 1, asc })
     }
 
     if (sortKeys.length === 0) {
-      sortKeys.push({col: 0, asc: true})
+      sortKeys.push({ col: 0, asc: true })
     }
 
     rows.sort((a, b) => {
-      for (const {col, asc} of sortKeys) {
+      for (const { col, asc } of sortKeys) {
         const va = a[col]
         const vb = b[col]
         const cmp = compareValues(va, vb)
@@ -451,7 +451,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     }
 
     const maxHeight = Math.max(...ranges.map(r => r.height()))
-    const result: InternalScalarValue[][] = Array.from({length: maxHeight}, () => [])
+    const result: InternalScalarValue[][] = Array.from({ length: maxHeight }, () => [])
 
     for (const range of ranges) {
       const data = range.rawData()
@@ -540,7 +540,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
         const values = range.valuesFromTopLeftCorner()
         const pad = padWith !== undefined ? padWith : EmptyValue
         const numCols = Math.ceil(values.length / wrapCount)
-        const result: InternalScalarValue[][] = Array.from({length: wrapCount}, () =>
+        const result: InternalScalarValue[][] = Array.from({ length: wrapCount }, () =>
           Array(numCols).fill(pad)
         )
         for (let i = 0; i < values.length; i++) {
@@ -581,7 +581,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
         const values = range.valuesFromTopLeftCorner()
         const pad = padWith !== undefined ? padWith : EmptyValue
         const numRows = Math.ceil(values.length / wrapCount)
-        const result: InternalScalarValue[][] = Array.from({length: numRows}, () =>
+        const result: InternalScalarValue[][] = Array.from({ length: numRows }, () =>
           Array(wrapCount).fill(pad)
         )
         for (let i = 0; i < values.length; i++) {
@@ -878,7 +878,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       (dimension: number) => {
         const result: number[][] = []
         for (let i = 0; i < dimension; i++) {
-          result.push(Array.from({length: dimension}, (_, j) => i === j ? 1 : 0))
+          result.push(Array.from({ length: dimension }, (_, j) => i === j ? 1 : 0))
         }
         return SimpleRangeValue.onlyNumbers(result)
       }
@@ -924,7 +924,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       }
       knownX = extracted
     } else {
-      knownX = Array.from({length: n}, (_, i) => i + 1)
+      knownX = Array.from({ length: n }, (_, i) => i + 1)
     }
 
     let newX: number[]
@@ -946,13 +946,13 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
 
     const useConst = ast.args.length > 3
       ? (() => {
-          const v = this.evaluateAst(ast.args[3], state)
-          return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
-        })()
+        const v = this.evaluateAst(ast.args[3], state)
+        return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
+      })()
       : true
 
     const lnY = knownY.map(v => Math.log(v))
-    const {slope, intercept} = linearRegression(knownX, lnY, useConst)
+    const { slope, intercept } = linearRegression(knownX, lnY, useConst)
     const b = Math.exp(intercept)
     const m = Math.exp(slope)
 
@@ -1003,7 +1003,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       }
       knownX = extracted
     } else {
-      knownX = Array.from({length: n}, (_, i) => i + 1)
+      knownX = Array.from({ length: n }, (_, i) => i + 1)
     }
 
     let newX: number[]
@@ -1025,12 +1025,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
 
     const useConst = ast.args.length > 3
       ? (() => {
-          const v = this.evaluateAst(ast.args[3], state)
-          return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
-        })()
+        const v = this.evaluateAst(ast.args[3], state)
+        return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
+      })()
       : true
 
-    const {slope, intercept} = linearRegression(knownX, knownY, useConst)
+    const { slope, intercept } = linearRegression(knownX, knownY, useConst)
     const resultFlat = newX.map(x => slope * x + intercept)
     const result = reshapeToMatrix(resultFlat, newXHeight, newXWidth)
     return SimpleRangeValue.onlyNumbers(result)
@@ -1080,7 +1080,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       }
       knownX = extracted
     } else {
-      knownX = Array.from({length: n}, (_, i) => i + 1)
+      knownX = Array.from({ length: n }, (_, i) => i + 1)
     }
 
     const useConst = ast.args.length > 2
@@ -1091,7 +1091,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       ? (() => { const v = this.evaluateAst(ast.args[3], state); return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : false) })()
       : false
 
-    const {slope, intercept} = linearRegression(knownX, knownY, useConst)
+    const { slope, intercept } = linearRegression(knownX, knownY, useConst)
 
     if (!returnStats) {
       return SimpleRangeValue.onlyNumbers([[slope, intercept]])
@@ -1101,8 +1101,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const yMean = knownY.reduce((a, b) => a + b, 0) / n
 
     const ssResid = knownX.reduce((sum, _, i) => sum + Math.pow(knownY[i] - yHat[i], 2), 0)
-    const ssReg = knownX.reduce((sum, _, i) => sum + Math.pow(yHat[i] - yMean, 2), 0)
-    const ssTot = ssResid + ssReg
+    const ssReg = useConst
+      ? knownX.reduce((sum, _, i) => sum + Math.pow(yHat[i] - yMean, 2), 0)
+      : yHat.reduce((sum, y) => sum + y * y, 0)
+    const ssTot = useConst
+      ? ssResid + ssReg
+      : knownY.reduce((sum, y) => sum + y * y, 0)
     const rSquared = ssTot === 0 ? 1 : ssReg / ssTot
 
     const df = useConst ? n - 2 : n - 1
@@ -1170,7 +1174,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       }
       knownX = extracted
     } else {
-      knownX = Array.from({length: n}, (_, i) => i + 1)
+      knownX = Array.from({ length: n }, (_, i) => i + 1)
     }
 
     const useConst = ast.args.length > 2
@@ -1182,7 +1186,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
       : false
 
     const lnY = knownY.map(v => Math.log(v))
-    const {slope, intercept} = linearRegression(knownX, lnY, useConst)
+    const { slope, intercept } = linearRegression(knownX, lnY, useConst)
     const m = Math.exp(slope)
     const b = Math.exp(intercept)
 
@@ -1194,8 +1198,12 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const yMean = lnY.reduce((a, v) => a + v, 0) / n
 
     const ssResid = knownX.reduce((sum, _, i) => sum + Math.pow(lnY[i] - yHat[i], 2), 0)
-    const ssReg = knownX.reduce((sum, _, i) => sum + Math.pow(yHat[i] - yMean, 2), 0)
-    const ssTot = ssResid + ssReg
+    const ssReg = useConst
+      ? knownX.reduce((sum, _, i) => sum + Math.pow(yHat[i] - yMean, 2), 0)
+      : yHat.reduce((sum, y) => sum + y * y, 0)
+    const ssTot = useConst
+      ? ssResid + ssReg
+      : lnY.reduce((sum, y) => sum + y * y, 0)
     const rSquared = ssTot === 0 ? 1 : ssReg / ssTot
 
     const df = useConst ? n - 2 : n - 1
@@ -1342,15 +1350,15 @@ function extractNumbers(range: SimpleRangeValue): number[] | null {
  * Simple linear regression: y = slope * x + intercept.
  * When useConst is false, forces intercept to 0.
  */
-function linearRegression(x: number[], y: number[], useConst: boolean): {slope: number, intercept: number} {
+function linearRegression(x: number[], y: number[], useConst: boolean): { slope: number, intercept: number } {
   const n = x.length
-  if (n === 0) return {slope: 0, intercept: 0}
+  if (n === 0) return { slope: 0, intercept: 0 }
 
   if (!useConst) {
     const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0)
     const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0)
     const slope = sumXX === 0 ? 0 : sumXY / sumXX
-    return {slope, intercept: 0}
+    return { slope, intercept: 0 }
   }
 
   const sumX = x.reduce((a, b) => a + b, 0)
@@ -1360,12 +1368,12 @@ function linearRegression(x: number[], y: number[], useConst: boolean): {slope: 
 
   const denom = n * sumXX - sumX * sumX
   if (denom === 0) {
-    return {slope: 0, intercept: sumY / n}
+    return { slope: 0, intercept: sumY / n }
   }
 
   const slope = (n * sumXY - sumX * sumY) / denom
   const intercept = (sumY - slope * sumX) / n
-  return {slope, intercept}
+  return { slope, intercept }
 }
 
 /**
