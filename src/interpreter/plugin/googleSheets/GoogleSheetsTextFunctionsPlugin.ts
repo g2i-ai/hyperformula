@@ -230,6 +230,9 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
    */
   public dollar(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('DOLLAR'), (number: number, decimals: number) => {
+      if (decimals > 20) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.ValueLarge)
+      }
       const rounded = decimals < 0 ? Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals) : number
       const fractionDigits = Math.max(0, decimals)
       return new Intl.NumberFormat('en-US', {
@@ -249,6 +252,9 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
    */
   public fixed(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('FIXED'), (number: number, decimals: number, noCommas: boolean) => {
+      if (decimals > 20) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.ValueLarge)
+      }
       const rounded = decimals < 0 ? Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals) : number
       const fractionDigits = Math.max(0, decimals)
       return new Intl.NumberFormat('en-US', {
@@ -289,9 +295,10 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
       const encoder = new TextEncoder()
       const withinBytes = encoder.encode(withinText)
       const findBytes = encoder.encode(findText)
-      const startByteIndex = this.getByteIndices(withinText)[startNum - 1]
+      // startNum is a 1-indexed byte position, so the byte offset is startNum - 1
+      const startByteIndex = startNum - 1
 
-      if (startByteIndex === undefined) {
+      if (startByteIndex >= withinBytes.length && withinText.length > 0) {
         return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
       }
 
@@ -431,8 +438,7 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
 
       // Perform a character-level case-insensitive search in the original text,
       // so that byte positions are always relative to the original string.
-      const lowerFind = findText.toLowerCase()
-      const foundCharIndex = this.findCharIndexCaseInsensitive(withinText, lowerFind, startCharIndex)
+      const foundCharIndex = this.findCharIndexCaseInsensitive(withinText, findText, startCharIndex)
 
       if (foundCharIndex === -1) {
         return new CellError(ErrorType.VALUE, ErrorMessage.PatternNotFound)
@@ -443,20 +449,21 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
   }
 
   /**
-   * Finds the character index of the first occurrence of lowerFind within text
-   * (case-insensitive comparison against text chars), starting at startCharIndex.
-   * Returns -1 if not found.
+   * Finds the code-unit index of the first occurrence of findText within text,
+   * using case-insensitive comparison, starting at startCharIndex.
+   *
+   * Slices `findText.length` code units from each position and compares their
+   * lowercased form against `findText.toLowerCase()`. This correctly handles
+   * characters whose `toLowerCase()` expands to multiple code units (e.g.
+   * Turkish İ U+0130 -> 'i\u0307'): slicing by the original length from both
+   * strings ensures the lowercased forms are always compared at the same source
+   * granularity. Returns -1 if not found.
    */
-  private findCharIndexCaseInsensitive(text: string, lowerFind: string, startCharIndex: number): number {
-    for (let i = startCharIndex; i <= text.length - lowerFind.length; i++) {
-      let match = true
-      for (let j = 0; j < lowerFind.length; j++) {
-        if (text[i + j].toLowerCase() !== lowerFind[j]) {
-          match = false
-          break
-        }
-      }
-      if (match) {
+  private findCharIndexCaseInsensitive(text: string, findText: string, startCharIndex: number): number {
+    const findLen = findText.length
+    const lowerFind = findText.toLowerCase()
+    for (let i = startCharIndex; i <= text.length - findLen; i++) {
+      if (text.slice(i, i + findLen).toLowerCase() === lowerFind) {
         return i
       }
     }
@@ -464,16 +471,32 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
   }
 
   /**
-   * Returns an array mapping character index to byte offset.
-   * Index 0 = byte offset of first char, index 1 = byte offset of second char, etc.
-   * Array length is text.length + 1 (last entry is total byte length).
+   * Returns an array mapping code-unit index to byte offset in UTF-8.
+   * Index 0 = byte offset of first char, index k = byte offset of the k-th
+   * code unit, last entry is total byte length.
+   *
+   * Iterates via `Array.from` to obtain Unicode code points so that
+   * supplementary characters (e.g. emoji encoded as surrogate pairs) contribute
+   * their correct 4-byte UTF-8 length rather than 3 bytes per lone surrogate.
+   * The resulting indices array is indexed by code-unit position (not code-point
+   * position) so that it remains directly usable with `string.slice`.
    */
   private getByteIndices(text: string): number[] {
     const encoder = new TextEncoder()
     const indices: number[] = [0]
-    for (let i = 0; i < text.length; i++) {
-      const charBytes = encoder.encode(text[i]).length
-      indices.push(indices[indices.length - 1] + charBytes)
+    for (const codePoint of text) {
+      const byteLen = encoder.encode(codePoint).length
+      // A supplementary code point occupies 2 code units (surrogate pair), so
+      // both code-unit positions map to the same starting byte offset, and only
+      // the second advances the accumulator.
+      if (codePoint.length === 2) {
+        // first surrogate: same byte offset as the code point start
+        indices.push(indices[indices.length - 1])
+        // second surrogate: advance by full byte length
+        indices.push(indices[indices.length - 1] + byteLen)
+      } else {
+        indices.push(indices[indices.length - 1] + byteLen)
+      }
     }
     return indices
   }

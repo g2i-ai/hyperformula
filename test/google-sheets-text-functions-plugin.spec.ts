@@ -198,6 +198,12 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe('$2,000')
       hf.destroy()
     })
+
+    it('returns #VALUE! for decimals exceeding engine limit (> 20)', () => {
+      const hf = buildWithPlugin([['=DOLLAR(1.5, 21)']])
+      expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
   })
 
   describe('FIXED', () => {
@@ -246,6 +252,12 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
     it('rounds to nearest 1000 with decimals=-3 and no_commas=true', () => {
       const hf = buildWithPlugin([['=FIXED(1750, -3, TRUE())']])
       expect(hf.getCellValue(adr('A1'))).toBe('2000')
+      hf.destroy()
+    })
+
+    it('returns #VALUE! for decimals exceeding engine limit (> 20)', () => {
+      const hf = buildWithPlugin([['=FIXED(1.5, 21)']])
+      expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
   })
@@ -299,6 +311,13 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       // "a日b" = 1 + 3 + 1 = 5 bytes
       const hf = buildWithPlugin([[`=LENB("a\u65E5b")`]])
       expect(hf.getCellValue(adr('A1'))).toBe(5)
+      hf.destroy()
+    })
+
+    it('counts 4 bytes for a surrogate-pair emoji (not 6)', () => {
+      // 😀 (U+1F600) is 4 bytes in UTF-8, but 2 UTF-16 code units
+      const hf = buildWithPlugin([[`=LENB("\uD83D\uDE00")`]])
+      expect(hf.getCellValue(adr('A1'))).toBe(4)
       hf.destroy()
     })
   })
@@ -433,6 +452,14 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('treats start_num as a byte position not a character index', () => {
+      // "日本語" each char is 3 bytes; "本" starts at byte 4
+      // FINDB("本", "日本語", 4) should find "本" starting from byte 4
+      const hf = buildWithPlugin([[`=FINDB("\u672C", "\u65E5\u672C\u8A9E", 4)`]])
+      expect(hf.getCellValue(adr('A1'))).toBe(4)
+      hf.destroy()
+    })
   })
 
   describe('SEARCHB', () => {
@@ -473,6 +500,14 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       // but would be at byte 4 if computed from lowercased string
       const hf = buildWithPlugin([[`=SEARCHB("s", "\u0130stanbul")`]])
       expect(hf.getCellValue(adr('A1'))).toBe(3)
+      hf.destroy()
+    })
+
+    it('finds a character whose toLowerCase expands to multiple chars', () => {
+      // SEARCHB("İ", "İstanbul") - searching for İ within İstanbul
+      // İ is at byte position 1 (first char, 2 bytes in UTF-8)
+      const hf = buildWithPlugin([[`=SEARCHB("\u0130", "\u0130stanbul")`]])
+      expect(hf.getCellValue(adr('A1'))).toBe(1)
       hf.destroy()
     })
   })
