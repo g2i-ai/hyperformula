@@ -680,6 +680,9 @@ export class GoogleSheetsStatisticalPlugin extends FunctionPlugin implements Fun
           }
 
           for (let j = 0; j < values.length; j++) {
+            if (weights[j] < 0) {
+              return new CellError(ErrorType.VALUE, ErrorMessage.ValueSmall)
+            }
             weightedSum += values[j] * weights[j]
             totalWeight += weights[j]
           }
