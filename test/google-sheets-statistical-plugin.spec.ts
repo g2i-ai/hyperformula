@@ -462,6 +462,33 @@ describe('GoogleSheetsStatisticalPlugin', () => {
       expect(hf.getCellValue(adr('A3'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('returns VALUE error when any weight is negative', () => {
+      // Google Sheets: "Weights cannot be negative" → #VALUE!
+      const hf = HyperFormula.buildFromArray(
+        [
+          [1, 2, 3],
+          [2, -1, 4],
+          ['=AVERAGE.WEIGHTED(A1:C1, A2:C2)'],
+        ],
+        GS_CONFIG
+      )
+      expect(hf.getCellValue(adr('A3'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('returns VALUE error when all weights are negative', () => {
+      const hf = HyperFormula.buildFromArray(
+        [
+          [1, 2, 3],
+          [-2, -3, -4],
+          ['=AVERAGE.WEIGHTED(A1:C1, A2:C2)'],
+        ],
+        GS_CONFIG
+      )
+      expect(hf.getCellValue(adr('A3'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
   })
 
   // ---------------------------------------------------------------------------
