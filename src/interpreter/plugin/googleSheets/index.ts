@@ -4,6 +4,8 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsEngineeringFixesPlugin} from './GoogleSheetsEngineeringFixesPlugin'
+import {GoogleSheetsStatisticalFixesPlugin} from './GoogleSheetsStatisticalFixesPlugin'
 import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
 
 /**
@@ -16,6 +18,8 @@ import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
  */
 export const googleSheetsPlugins: FunctionPluginDefinition[] = [
   GoogleSheetsTextPlugin,
+  GoogleSheetsEngineeringFixesPlugin,
+  GoogleSheetsStatisticalFixesPlugin,
 ]
 
-export {GoogleSheetsTextPlugin}
+export {GoogleSheetsTextPlugin, GoogleSheetsEngineeringFixesPlugin, GoogleSheetsStatisticalFixesPlugin}
