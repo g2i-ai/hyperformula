@@ -1,6 +1,7 @@
 import {DetailedCellError, HyperFormula} from '../src'
 import {adr} from './testUtils'
 import {GoogleSheetsConversionPlugin} from '../src/interpreter/plugin/googleSheets/GoogleSheetsConversionPlugin'
+import {NumberType} from '../src/interpreter/InterpreterValue'
 
 const GS_OPTIONS = {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets' as const}
 
@@ -35,57 +36,57 @@ describe('GoogleSheetsConversionPlugin', () => {
   })
 
   describe('TO_DOLLARS', () => {
-    it('formats 10000 as $10,000.00', () => {
+    it('returns a NUMBER_CURRENCY typed value (not a string)', () => {
       const hf = HyperFormula.buildFromArray([['=TO_DOLLARS(10000)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('$10,000.00')
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_CURRENCY)
       hf.destroy()
     })
 
-    it('formats 0 as $0.00', () => {
+    it('preserves the raw numeric value', () => {
+      const hf = HyperFormula.buildFromArray([['=TO_DOLLARS(42.5)']], GS_OPTIONS)
+      expect(hf.getCellValue(adr('A1'))).toBe(42.5)
+      hf.destroy()
+    })
+
+    it('handles zero', () => {
       const hf = HyperFormula.buildFromArray([['=TO_DOLLARS(0)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('$0.00')
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_CURRENCY)
+      expect(hf.getCellValue(adr('A1'))).toBe(0)
       hf.destroy()
     })
 
-    it('formats negative values with a minus sign', () => {
+    it('handles negative values', () => {
       const hf = HyperFormula.buildFromArray([['=TO_DOLLARS(-1)']], GS_OPTIONS)
-      const val = hf.getCellValue(adr('A1')) as string
-      expect(val).toContain('1')
-      expect(val).toContain('$')
-      hf.destroy()
-    })
-
-    it('formats fractional cents', () => {
-      const hf = HyperFormula.buildFromArray([['=TO_DOLLARS(1.5)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('$1.50')
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_CURRENCY)
+      expect(hf.getCellValue(adr('A1'))).toBe(-1)
       hf.destroy()
     })
   })
 
   describe('TO_PERCENT', () => {
-    it('formats 0.40826 as a percent string', () => {
+    it('returns a NUMBER_PERCENT typed value (not a string)', () => {
       const hf = HyperFormula.buildFromArray([['=TO_PERCENT(0.40826)']], GS_OPTIONS)
-      const val = hf.getCellValue(adr('A1')) as string
-      expect(typeof val).toBe('string')
-      expect(val).toContain('%')
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_PERCENT)
       hf.destroy()
     })
 
-    it('formats 1 as 100%', () => {
-      const hf = HyperFormula.buildFromArray([['=TO_PERCENT(1)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('100%')
-      hf.destroy()
-    })
-
-    it('formats 0 as 0%', () => {
-      const hf = HyperFormula.buildFromArray([['=TO_PERCENT(0)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('0%')
-      hf.destroy()
-    })
-
-    it('formats 0.5 as 50%', () => {
+    it('preserves the raw numeric value', () => {
       const hf = HyperFormula.buildFromArray([['=TO_PERCENT(0.5)']], GS_OPTIONS)
-      expect(hf.getCellValue(adr('A1'))).toBe('50%')
+      expect(hf.getCellValue(adr('A1'))).toBe(0.5)
+      hf.destroy()
+    })
+
+    it('handles zero', () => {
+      const hf = HyperFormula.buildFromArray([['=TO_PERCENT(0)']], GS_OPTIONS)
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_PERCENT)
+      expect(hf.getCellValue(adr('A1'))).toBe(0)
+      hf.destroy()
+    })
+
+    it('handles values greater than 1', () => {
+      const hf = HyperFormula.buildFromArray([['=TO_PERCENT(2)']], GS_OPTIONS)
+      expect(hf.getCellValueDetailedType(adr('A1'))).toBe(NumberType.NUMBER_PERCENT)
+      expect(hf.getCellValue(adr('A1'))).toBe(2)
       hf.destroy()
     })
   })
@@ -212,6 +213,24 @@ describe('GoogleSheetsConversionPlugin', () => {
     it('converts hours to seconds', () => {
       const hf = HyperFormula.buildFromArray([['=CONVERT(1,"hr","sec")']], GS_OPTIONS)
       expect(hf.getCellValue(adr('A1'))).toBe(3600)
+      hf.destroy()
+    })
+
+    it('converts 1 erg (e) to joules: 1 erg = 1e-7 J', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1,"e","J")']], GS_OPTIONS)
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(1e-7, 20)
+      hf.destroy()
+    })
+
+    it('converts 1e7 ergs to 1 joule', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1e7,"e","J")']], GS_OPTIONS)
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(1, 10)
+      hf.destroy()
+    })
+
+    it('converts 1 joule to 1e7 ergs', () => {
+      const hf = HyperFormula.buildFromArray([['=CONVERT(1,"J","e")']], GS_OPTIONS)
+      expect(hf.getCellValue(adr('A1'))).toBeCloseTo(1e7, 0)
       hf.destroy()
     })
   })

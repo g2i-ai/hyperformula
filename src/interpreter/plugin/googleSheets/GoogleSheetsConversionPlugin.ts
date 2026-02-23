@@ -28,10 +28,12 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
     'TO_DOLLARS': {
       method: 'toDollars',
       parameters: [{argumentType: FunctionArgumentType.NUMBER}],
+      returnNumberType: NumberType.NUMBER_CURRENCY,
     },
     'TO_PERCENT': {
       method: 'toPercent',
       parameters: [{argumentType: FunctionArgumentType.NUMBER}],
+      returnNumberType: NumberType.NUMBER_PERCENT,
     },
     'TO_PURE_NUMBER': {
       method: 'toPureNumber',
@@ -90,7 +92,7 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
       Pa: 1, atm: 101325, mmHg: 133.322, psi: 6894.757, Torr: 133.322,
     },
     energy: {
-      J: 1, e: 1, cal: 4.1868, eV: 1.602176634e-19, HPh: 2684519.5368,
+      J: 1, e: 1e-7, cal: 4.1868, eV: 1.602176634e-19, HPh: 2684519.5368,
       Wh: 3600, BTU: 1055.05585262,
     },
     force: {
@@ -108,20 +110,20 @@ export class GoogleSheetsConversionPlugin extends FunctionPlugin implements Func
   }
 
   /**
-   * TO_DOLLARS(number) — formats a number as a USD currency string.
+   * TO_DOLLARS(number) — wraps a number as a currency-typed value.
    */
   public toDollars(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('TO_DOLLARS'),
-      (value: number) => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(value)
+      (value: number) => value
     )
   }
 
   /**
-   * TO_PERCENT(number) — formats a number as a percent string.
+   * TO_PERCENT(number) — wraps a number as a percent-typed value.
    */
   public toPercent(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('TO_PERCENT'),
-      (value: number) => new Intl.NumberFormat('en-US', {style: 'percent'}).format(value)
+      (value: number) => value
     )
   }
 
