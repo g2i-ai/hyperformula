@@ -220,6 +220,34 @@ describe('GoogleSheetsFinancialPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
       hf.destroy()
     })
+
+    it('counts coupons correctly when settlement day is before maturity day within the month', () => {
+      // Settlement: Jan 14 2010, Maturity: Apr 15 2010, quarterly (freq=4)
+      // Coupon dates anchored to Apr 15: Jan 15, Apr 15
+      // Jan 15 is strictly after Jan 14, so there are 2 remaining coupons: Jan 15 and Apr 15
+      // Bug: month-only calculation gives ceil(3/3)=1, ignoring the Jan 15 coupon
+      const hf = build([['=COUPNUM(DATE(2010,1,14), DATE(2010,4,15), 4, 0)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(2)
+      hf.destroy()
+    })
+
+    it('counts coupons correctly when settlement is one day before a coupon date (semi-annual)', () => {
+      // Settlement: Sep 30 2010, Maturity: Apr 1 2011, semi-annual (freq=2)
+      // Coupon dates: Oct 1 2010 and Apr 1 2011
+      // Sep 30 is before Oct 1, so 2 coupons remain
+      // Bug: month-only calculation gives ceil(6/6)=1
+      const hf = build([['=COUPNUM(DATE(2010,9,30), DATE(2011,4,1), 2, 0)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(2)
+      hf.destroy()
+    })
+
+    it('counts exactly one coupon when settlement is on a coupon date', () => {
+      // Settlement: Oct 1 2010, Maturity: Apr 1 2011, semi-annual
+      // Oct 1 is a coupon date, so it is the previous coupon; next = Apr 1 = 1 remaining
+      const hf = build([['=COUPNUM(DATE(2010,10,1), DATE(2011,4,1), 2, 0)']])
+      expect(hf.getCellValue(adr('A1'))).toBe(1)
+      hf.destroy()
+    })
   })
 
   // -------------------------------------------------------------------------
@@ -518,6 +546,38 @@ describe('GoogleSheetsFinancialPlugin', () => {
     it('returns NUM error for non-positive price', () => {
       const hf = build([['=YIELD(DATE(2010,1,1), DATE(2020,1,1), 0.05, 0, 100, 2, 0)']])
       expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('does not silently converge to initial guess when solver enters error region', () => {
+      // When Newton-Raphson evaluates priceCore at a point where it returns a CellError
+      // (e.g. yld makes the price denominator zero), the wrapped NaN->0 substitution
+      // makes f(x)=0, causing false convergence to that x instead of returning #NUM.
+      // The fix propagates the CellError rather than masking it.
+      //
+      // Near-maturity single-period bond (N=1) with very large redemption/settlement gap:
+      // settlement just after a coupon, maturity = next coupon date.
+      // Use a redemption of 0.001 and price of 999 – a price no yield can match –
+      // to ensure the solver eventually crosses the denom-zero pole (yld = -freq*E/DSC).
+      // With NaN wrapping, the solver may return the initial guess (0.1) as a false answer.
+      // Without NaN wrapping, the solver correctly returns #NUM.
+      const hf = build([['=YIELD(DATE(2010,1,1), DATE(2010,4,1), 0.0, 999, 0.001, 4, 0)']])
+      // This bond has no valid yield (price 999 is impossible for redemption 0.001)
+      // so YIELD must return a #NUM error, not a spurious number
+      expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+      hf.destroy()
+    })
+
+    it('computes correct yield for a well-known single-period bond (N=1)', () => {
+      // Settlement 2010-01-01, maturity 2010-04-01, rate=5%, redemption=100, freq=4
+      // The PRICE at yield=5% should equal the YIELD-computed price
+      const hf = build([
+        ['=PRICE(DATE(2010,1,1), DATE(2010,4,1), 0.05, 0.05, 100, 4, 0)',
+         '=YIELD(DATE(2010,1,1), DATE(2010,4,1), 0.05, A1, 100, 4, 0)'],
+      ])
+      const yld = hf.getCellValue(adr('B1'))
+      expect(typeof yld).toBe('number')
+      expect(yld as number).toBeCloseTo(0.05, 4)
       hf.destroy()
     })
   })

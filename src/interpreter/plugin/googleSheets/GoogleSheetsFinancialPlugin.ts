@@ -457,11 +457,16 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
+        // Anchor on the next coupon date after settlement, then count how many
+        // full coupon periods remain from that date to maturity (inclusive).
+        // Using nextCouponDate correctly handles the day component: a settlement
+        // one day before a coupon date yields one more coupon than a settlement
+        // on that coupon date, which month-only arithmetic would miss.
+        const ncd = this.nextCouponDate(settlement, maturity, frequency as CouponFrequency)
         const mat = this.dateTimeHelper.numberToSimpleDate(maturity)
-        const set = this.dateTimeHelper.numberToSimpleDate(settlement)
-        const monthsDiff = (mat.year - set.year) * 12 + (mat.month - set.month)
         const monthsPerCoupon = 12 / frequency
-        return Math.ceil(monthsDiff / monthsPerCoupon)
+        const monthsFromNcdToMat = (mat.year - ncd.year) * 12 + (mat.month - ncd.month)
+        return monthsFromNcdToMat / monthsPerCoupon + 1
       }
     )
   }
@@ -718,10 +723,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
           return (p1 - p0) / (2 * delta)
         }
 
-        const fWrapped = (x: number) => { const v = f(x); return isNaN(v) ? 0 : v }
-        const dfWrapped = (x: number) => { const v = df(x); return isNaN(v) ? 1 : v }
-
-        return newtonRaphson(fWrapped, dfWrapped, 0.1)
+        return newtonRaphson(f, df, 0.1)
       }
     )
   }
@@ -1046,6 +1048,12 @@ function durationCore(
  * Newton-Raphson root finder.
  *
  * Finds x such that f(x) = 0 using derivative df.
+ * Returns CellError(NUM) when the solver diverges, does not converge within
+ * maxIter iterations, or when f or df return NaN (which signals that the
+ * underlying price formula hit a mathematical singularity such as a
+ * division-by-zero pole). Propagating NaN as a failure prevents false
+ * convergence at singular points where the wrapped-NaN-to-zero substitution
+ * would otherwise make the solver believe it had found a valid root.
  */
 function newtonRaphson(
   f: (x: number) => number,
@@ -1058,6 +1066,7 @@ function newtonRaphson(
   for (let i = 0; i < maxIter; i++) {
     const fx = f(x)
     const dfx = df(x)
+    if (isNaN(fx) || isNaN(dfx)) return new CellError(ErrorType.NUM)
     if (Math.abs(dfx) < 1e-15) return new CellError(ErrorType.NUM)
     const nextX = x - fx / dfx
     if (Math.abs(nextX - x) < tol) return nextX
