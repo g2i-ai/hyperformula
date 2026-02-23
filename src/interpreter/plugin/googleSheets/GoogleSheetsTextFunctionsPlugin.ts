@@ -230,13 +230,14 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
    */
   public dollar(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('DOLLAR'), (number: number, decimals: number) => {
+      const rounded = decimals < 0 ? Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals) : number
       const fractionDigits = Math.max(0, decimals)
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: fractionDigits,
         maximumFractionDigits: fractionDigits,
-      }).format(number)
+      }).format(rounded)
     })
   }
 
@@ -248,12 +249,13 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
    */
   public fixed(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('FIXED'), (number: number, decimals: number, noCommas: boolean) => {
+      const rounded = decimals < 0 ? Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals) : number
       const fractionDigits = Math.max(0, decimals)
       return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: fractionDigits,
         maximumFractionDigits: fractionDigits,
         useGrouping: !noCommas,
-      }).format(number)
+      }).format(rounded)
     })
   }
 
@@ -402,6 +404,11 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
    *
    * Returns the byte position of find_text within within_text.
    * Case-insensitive. 1-indexed. Returns #VALUE! if not found.
+   *
+   * Byte positions are computed from the original (unmodified) text so that
+   * characters whose lowercase form has a different byte length (e.g. Turkish
+   * İ U+0130) do not cause the returned offset to diverge from the actual
+   * position in the source string.
    */
   public searchb(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('SEARCHB'), (findText: string, withinText: string, startNum: number) => {
@@ -409,27 +416,51 @@ export class GoogleSheetsTextFunctionsPlugin extends FunctionPlugin implements F
         return new CellError(ErrorType.VALUE, ErrorMessage.LessThanOne)
       }
 
-      const lowerFind = findText.toLowerCase()
-      const lowerWithin = withinText.toLowerCase()
+      const origByteIndices = this.getByteIndices(withinText)
+      const startByteIndex = startNum - 1
 
-      const encoder = new TextEncoder()
-      const withinBytes = encoder.encode(lowerWithin)
-      const findBytes = encoder.encode(lowerFind)
-      const startByteIndex = this.getByteIndices(lowerWithin)[startNum - 1]
-
-      if (startByteIndex === undefined) {
+      if (startByteIndex >= origByteIndices[origByteIndices.length - 1] && withinText.length > 0) {
         return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
       }
 
-      const searchSlice = withinBytes.slice(startByteIndex)
-      const foundByteOffset = this.findBytesIndex(searchSlice, findBytes)
+      // Find the start character index in the original text that corresponds to startByteIndex.
+      const startCharIndex = origByteIndices.findIndex(b => b >= startByteIndex)
+      if (startCharIndex === -1) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.IndexBounds)
+      }
 
-      if (foundByteOffset === -1) {
+      // Perform a character-level case-insensitive search in the original text,
+      // so that byte positions are always relative to the original string.
+      const lowerFind = findText.toLowerCase()
+      const foundCharIndex = this.findCharIndexCaseInsensitive(withinText, lowerFind, startCharIndex)
+
+      if (foundCharIndex === -1) {
         return new CellError(ErrorType.VALUE, ErrorMessage.PatternNotFound)
       }
 
-      return startByteIndex + foundByteOffset + 1
+      return origByteIndices[foundCharIndex] + 1
     })
+  }
+
+  /**
+   * Finds the character index of the first occurrence of lowerFind within text
+   * (case-insensitive comparison against text chars), starting at startCharIndex.
+   * Returns -1 if not found.
+   */
+  private findCharIndexCaseInsensitive(text: string, lowerFind: string, startCharIndex: number): number {
+    for (let i = startCharIndex; i <= text.length - lowerFind.length; i++) {
+      let match = true
+      for (let j = 0; j < lowerFind.length; j++) {
+        if (text[i + j].toLowerCase() !== lowerFind[j]) {
+          match = false
+          break
+        }
+      }
+      if (match) {
+        return i
+      }
+    }
+    return -1
   }
 
   /**

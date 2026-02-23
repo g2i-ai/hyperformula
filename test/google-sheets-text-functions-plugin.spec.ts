@@ -180,6 +180,24 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
       expect(hf.getCellValue(adr('A1'))).toBe('$1,234.57')
       hf.destroy()
     })
+
+    it('rounds to the left of decimal with negative decimals', () => {
+      const hf = buildWithPlugin([['=DOLLAR(1234, -2)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('$1,200')
+      hf.destroy()
+    })
+
+    it('rounds to nearest 10 with decimals=-1', () => {
+      const hf = buildWithPlugin([['=DOLLAR(1234, -1)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('$1,230')
+      hf.destroy()
+    })
+
+    it('rounds to nearest 1000 with decimals=-3', () => {
+      const hf = buildWithPlugin([['=DOLLAR(1750, -3)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('$2,000')
+      hf.destroy()
+    })
   })
 
   describe('FIXED', () => {
@@ -210,6 +228,24 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
     it('handles negative numbers', () => {
       const hf = buildWithPlugin([['=FIXED(-1234.5, 1, TRUE())']])
       expect(hf.getCellValue(adr('A1'))).toBe('-1234.5')
+      hf.destroy()
+    })
+
+    it('rounds to the left of decimal with negative decimals', () => {
+      const hf = buildWithPlugin([['=FIXED(1234, -2)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('1,200')
+      hf.destroy()
+    })
+
+    it('rounds to nearest 10 with decimals=-1', () => {
+      const hf = buildWithPlugin([['=FIXED(1234, -1)']])
+      expect(hf.getCellValue(adr('A1'))).toBe('1,230')
+      hf.destroy()
+    })
+
+    it('rounds to nearest 1000 with decimals=-3 and no_commas=true', () => {
+      const hf = buildWithPlugin([['=FIXED(1750, -3, TRUE())']])
+      expect(hf.getCellValue(adr('A1'))).toBe('2000')
       hf.destroy()
     })
   })
@@ -428,6 +464,15 @@ describe('GoogleSheetsTextFunctionsPlugin', () => {
     it('respects start position', () => {
       const hf = buildWithPlugin([['=SEARCHB("l", "hello", 4)']])
       expect(hf.getCellValue(adr('A1'))).toBe(4)
+      hf.destroy()
+    })
+
+    it('returns byte position from original text when lowercase expands byte length', () => {
+      // Turkish İ (U+0130, 2 bytes) lowercases to i + combining dot (3 bytes)
+      // 's' in 'İstanbul' is at byte 3 in original (İ=2 bytes + s)
+      // but would be at byte 4 if computed from lowercased string
+      const hf = buildWithPlugin([[`=SEARCHB("s", "\u0130stanbul")`]])
+      expect(hf.getCellValue(adr('A1'))).toBe(3)
       hf.destroy()
     })
   })
