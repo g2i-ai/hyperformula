@@ -281,16 +281,22 @@ export class GoogleSheetsOperatorPlugin extends FunctionPlugin implements Functi
   /**
    * ISBETWEEN(val, lo, hi, loInc, hiInc) - Returns true if val is in [lo, hi].
    *
-   * Returns #NUM! error when lo > hi, matching Google Sheets behavior.
+   * Uses epsilon-aware floatCmp for all comparisons to stay consistent with
+   * GTE/LTE and avoid false negatives at floating-point boundaries (e.g. 0.1+0.2 vs 0.3).
+   *
+   * Returns #NUM! error when lo > hi (epsilon-aware), matching Google Sheets behavior.
    */
   public isbetween(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
     return this.runFunction(ast.args, state, this.metadata('ISBETWEEN'),
       (val: number, lo: number, hi: number, loInc: boolean, hiInc: boolean) => {
-        if (lo > hi) {
+        const cmpLoHi = this.arithmeticHelper.floatCmp(lo, hi)
+        if (cmpLoHi > 0) {
           return new CellError(ErrorType.NUM, ErrorMessage.NaN)
         }
-        const lowerOk = loInc ? val >= lo : val > lo
-        const upperOk = hiInc ? val <= hi : val < hi
+        const cmpValLo = this.arithmeticHelper.floatCmp(val, lo)
+        const cmpValHi = this.arithmeticHelper.floatCmp(val, hi)
+        const lowerOk = loInc ? cmpValLo >= 0 : cmpValLo > 0
+        const upperOk = hiInc ? cmpValHi <= 0 : cmpValHi < 0
         return lowerOk && upperOk
       }
     )
