@@ -4,6 +4,7 @@
  */
 
 import type { FunctionPluginDefinition } from '../FunctionPlugin'
+import {GoogleSheetsTextPlugin} from './GoogleSheetsTextPlugin'
 
 /**
  * Google Sheets override plugins.
@@ -13,4 +14,8 @@ import type { FunctionPluginDefinition } from '../FunctionPlugin'
  * on top of the default plugins in FunctionRegistry, silently replacing
  * the overridden function implementations via Map.set.
  */
-export const googleSheetsPlugins: FunctionPluginDefinition[] = []
+export const googleSheetsPlugins: FunctionPluginDefinition[] = [
+  GoogleSheetsTextPlugin,
+]
+
+export {GoogleSheetsTextPlugin}
