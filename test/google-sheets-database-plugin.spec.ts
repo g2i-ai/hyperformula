@@ -758,4 +758,83 @@ describe('GoogleSheetsDatabasePlugin', () => {
     expect(result).toBe(1)
     hf.destroy()
   })
+
+  // ---------------------------------------------------------------------------
+  // Boolean criteria matching (Bug: booleans were coerced to "true"/"false" strings)
+  // ---------------------------------------------------------------------------
+
+  it('boolean TRUE criterion matches boolean TRUE cells in database', () => {
+    // Database with a boolean column (using formulas that evaluate to TRUE/FALSE)
+    const hf = HyperFormula.buildFromArray([
+      ['Active', 'Salary'],   // row 1 — headers
+      ['=TRUE()', 50000],     // row 2 — Active=TRUE
+      ['=FALSE()', 60000],    // row 3 — Active=FALSE
+      ['=TRUE()', 70000],     // row 4 — Active=TRUE
+      [null],                 // row 5 — spacer
+      ['Active'],             // row 6 — criteria header
+      ['=TRUE()'],            // row 7 — criteria: TRUE
+      ['=DSUM(A1:B4, "Salary", A6:A7)'], // row 8
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // TRUE rows: row 2 (50000) and row 4 (70000) = 120000
+    expect(hf.getCellValue(adr('A8'))).toBe(120000)
+    hf.destroy()
+  })
+
+  it('boolean FALSE criterion matches boolean FALSE cells in database', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['Active', 'Salary'],
+      ['=TRUE()', 50000],
+      ['=FALSE()', 60000],
+      ['=TRUE()', 70000],
+      [null],
+      ['Active'],
+      ['=FALSE()'],
+      ['=DCOUNT(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Only row 3 has Active=FALSE
+    expect(hf.getCellValue(adr('A8'))).toBe(1)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // CellError in database should not match not-equal criteria (Bug: CellError always matched <>)
+  // ---------------------------------------------------------------------------
+
+  it('cells with errors in criteria column are excluded from <> results', () => {
+    // Database where one data row has a #DIV/0! error in the criteria column
+    const hf = HyperFormula.buildFromArray([
+      ['Dept', 'Salary'],
+      ['Engineering', 50000],
+      ['=1/0', 60000],           // row 3 — error in Dept column
+      ['Sales', 70000],
+      [null],
+      ['Dept'],
+      ['<>Engineering'],          // criteria: not Engineering
+      ['=DSUM(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Row 3 has an error in Dept — should NOT be included.
+    // Only Sales (row 4, 70000) should match.
+    expect(hf.getCellValue(adr('A8'))).toBe(70000)
+    hf.destroy()
+  })
+
+  it('cells with errors in criteria column are excluded from = results', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['Dept', 'Salary'],
+      ['Engineering', 50000],
+      ['=1/0', 60000],           // row 3 — error in Dept column
+      ['Sales', 70000],
+      [null],
+      ['Dept'],
+      ['Sales'],
+      ['=DCOUNT(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Error row should not match 'Sales'
+    expect(hf.getCellValue(adr('A8'))).toBe(1)
+    hf.destroy()
+  })
 })
