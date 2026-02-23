@@ -20,6 +20,7 @@ import {Maybe} from '../Maybe'
 import {
   cellAddressFromString,
   columnAddressFromString,
+  columnLabelToIndex,
   rowAddressFromString,
   ResolveSheetReferenceFn,
 } from './addressRepresentationConverters'
@@ -64,10 +65,13 @@ import {
   RangeSheetReferenceType,
 } from './Ast'
 import {CellAddress, CellReferenceType} from './CellAddress'
+import {ColumnAddress} from './ColumnAddress'
+import {RowAddress} from './RowAddress'
 import {
   AdditionOp,
   ArrayLParen,
   ArrayRParen,
+  BooleanLiteral,
   BooleanOp,
   CellReference,
   ColumnRange,
@@ -179,6 +183,21 @@ export class FormulaParser extends EmbeddedActionsParser {
 
     const rParenToken = this.CONSUME(RParen) as ExtendedToken
     return buildProcedureAst(canonicalProcedureName, args, procedureNameToken.leadingWhitespace, rParenToken.leadingWhitespace)
+  })
+
+  /**
+   * Rule for boolean literal expressions.
+   * In GSheets mode, TRUE/FALSE without parens produce ProcedureAst (same as TRUE()/FALSE()).
+   * In default mode, they fall through as named expression references.
+   */
+  private booleanLiteralExpression: AstRule = this.RULE('booleanLiteralExpression', () => {
+    const token = this.CONSUME(BooleanLiteral) as ExtendedToken
+    if (this.lexerConfig.compatibilityMode === 'googleSheets') {
+      const value = token.image.toUpperCase()
+      const canonicalName = this.lexerConfig.functionMapping[value] ?? value
+      return buildProcedureAst(canonicalName, [], token.leadingWhitespace)
+    }
+    return buildNamedExpressionAst(token.image, token.leadingWhitespace)
   })
 
   private namedExpressionExpression: AstRule = this.RULE('namedExpressionExpression', () => {
@@ -328,6 +347,42 @@ export class FormulaParser extends EmbeddedActionsParser {
           }
         },
       },
+      // GSheets: CellRef : ColumnName (e.g., A1:B → A1:B{maxRow})
+      {
+        GATE: () => this.lexerConfig.compatibilityMode === 'googleSheets',
+        ALT: () => {
+          const endCol = this.CONSUME2(NamedExpression) as ExtendedToken
+          return this.ACTION(() => {
+            const colLabel = endCol.image.replace(/^\$/, '')
+            if (!/^[A-Za-z]+$/.test(colLabel)) {
+              return buildCellErrorAst(new CellError(ErrorType.REF))
+            }
+            const startAddr = cellAddressFromString(start.image, this.formulaAddress, this.resolveSheetReference)
+            const endColAddr = columnAddressFromString(endCol.image, this.formulaAddress, this.resolveSheetReference)
+            if (!startAddr || !endColAddr) {
+              return buildCellErrorAst(new CellError(ErrorType.REF))
+            }
+            const endAddr = CellAddress.fromColAndRow(endColAddr, RowAddress.absolute(this.lexerConfig.maxRows - 1), endColAddr.sheet)
+            return this.buildCellRange(startAddr, endAddr, start.leadingWhitespace?.image)
+          })
+        },
+      },
+      // GSheets: CellRef : RowNumber (e.g., A1:2 → A1:{maxCol}2)
+      {
+        GATE: () => this.lexerConfig.compatibilityMode === 'googleSheets',
+        ALT: () => {
+          const endRow = this.CONSUME2(this.lexerConfig.NumberLiteral) as ExtendedToken
+          return this.ACTION(() => {
+            const startAddr = cellAddressFromString(start.image, this.formulaAddress, this.resolveSheetReference)
+            if (!startAddr) {
+              return buildCellErrorAst(new CellError(ErrorType.REF))
+            }
+            const rowNum = parseInt(endRow.image, 10) - 1
+            const endAddr = CellAddress.absolute(this.lexerConfig.maxColumns - 1, rowNum)
+            return this.buildCellRange(startAddr, endAddr, start.leadingWhitespace?.image)
+          })
+        },
+      },
     ]) as Ast
   })
 
@@ -382,6 +437,46 @@ export class FormulaParser extends EmbeddedActionsParser {
         },
       },
     ]) as Ast
+  })
+
+  /**
+   * GSheets: Row-to-Cell range (e.g., 1:B2 → A1:B2)
+   */
+  private rowToCellRangeExpression: AstRule = this.RULE('rowToCellRangeExpression', () => {
+    const startRow = this.CONSUME(this.lexerConfig.NumberLiteral) as ExtendedToken
+    this.CONSUME(RangeSeparator)
+    const end = this.CONSUME(CellReference) as ExtendedToken
+    return this.ACTION(() => {
+      const endAddr = cellAddressFromString(end.image, this.formulaAddress, this.resolveSheetReference)
+      if (!endAddr) {
+        return buildCellErrorAst(new CellError(ErrorType.REF))
+      }
+      const rowNum = parseInt(startRow.image, 10) - 1
+      const startAddr = CellAddress.absolute(0, rowNum)
+      return this.buildCellRange(startAddr, endAddr, startRow.leadingWhitespace?.image)
+    })
+  })
+
+  /**
+   * GSheets: ColumnRange followed by a row number (e.g., A:B2).
+   * The lexer tokenizes A:B2 as ColumnRange(A:B) NumberLiteral(2).
+   * We reinterpret this as a cell range A1:B2.
+   */
+  private columnRangeToCellExpression: AstRule = this.RULE('columnRangeToCellExpression', () => {
+    const range = this.CONSUME(ColumnRange) as ExtendedToken
+    const rowToken = this.CONSUME(this.lexerConfig.NumberLiteral) as ExtendedToken
+    return this.ACTION(() => {
+      const [startImage, endImage] = range.image.split(':')
+      const startColAddr = columnAddressFromString(startImage, this.formulaAddress, this.resolveSheetReference)
+      const endColAddr = columnAddressFromString(endImage, this.formulaAddress, this.resolveSheetReference)
+      if (!startColAddr || !endColAddr) {
+        return buildCellErrorAst(new CellError(ErrorType.REF))
+      }
+      const rowNum = parseInt(rowToken.image, 10) - 1
+      const startAddr = CellAddress.fromColAndRow(startColAddr, RowAddress.absolute(0), startColAddr.sheet)
+      const endAddr = CellAddress.fromColAndRow(endColAddr, RowAddress.absolute(rowNum), endColAddr.sheet)
+      return this.buildCellRange(startAddr, endAddr, range.leadingWhitespace?.image)
+    })
   })
 
   /**
@@ -516,6 +611,11 @@ export class FormulaParser extends EmbeddedActionsParser {
       {
         ALT: () => this.SUBRULE(this.cellRangeExpression),
       },
+      // GSheets: ColumnRange followed by row number (e.g., A:B2) — must be before columnRangeExpression
+      {
+        GATE: () => this.lexerConfig.compatibilityMode === 'googleSheets',
+        ALT: () => this.SUBRULE(this.columnRangeToCellExpression),
+      },
       {
         ALT: () => this.SUBRULE(this.columnRangeExpression),
       },
@@ -532,7 +632,15 @@ export class FormulaParser extends EmbeddedActionsParser {
         ALT: () => this.SUBRULE(this.procedureExpression),
       },
       {
+        ALT: () => this.SUBRULE(this.booleanLiteralExpression),
+      },
+      {
         ALT: () => this.SUBRULE(this.namedExpressionExpression),
+      },
+      // GSheets: RowNumber:CellRef (e.g., 1:B2)
+      {
+        GATE: () => this.lexerConfig.compatibilityMode === 'googleSheets',
+        ALT: () => this.SUBRULE(this.rowToCellRangeExpression),
       },
       {
         ALT: () => {

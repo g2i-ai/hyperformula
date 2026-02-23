@@ -49,6 +49,11 @@ export const RowRange = createToken({ name: 'RowRange', pattern: new RegExp(`${R
 
 export const ProcedureName = createToken({ name: 'ProcedureName', pattern: new RegExp(`([${UNICODE_LETTER_PATTERN}][${NON_RESERVED_CHARACTER_PATTERN}]*)\\(`) })
 
+export const BooleanLiteral = createToken({
+  name: 'BooleanLiteral',
+  pattern: /TRUE|FALSE/i,
+})
+
 const cellReferenceMatcher = new CellReferenceMatcher()
 export const CellReference = createToken({
   name: 'CellReference',
@@ -69,6 +74,7 @@ export interface LexerConfig {
   ArgSeparator: TokenType,
   NumberLiteral: TokenType,
   OffsetProcedureName: TokenType,
+  BooleanLiteral: TokenType,
   allTokens: TokenType[],
   errorMapping: Record<string, ErrorType>,
   functionMapping: Record<string, string>,
@@ -78,12 +84,14 @@ export interface LexerConfig {
   WhiteSpace: TokenType,
   maxColumns: number,
   maxRows: number,
+  compatibilityMode: 'default' | 'googleSheets',
 }
 
 /**
  * Builds the configuration object for the lexer
  */
 export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
+  cellReferenceMatcher.configure(config.compatibilityMode, config.maxColumns)
   const offsetProcedureNameLiteral = config.translationPackage.getFunctionTranslation('OFFSET')
   const errorMapping = config.errorMapping
   const functionMapping = config.translationPackage.buildFunctionMapping()
@@ -129,6 +137,7 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     ArrayRParen,
     OffsetProcedureName,
     ProcedureName,
+    BooleanLiteral,
     RangeSeparator,
     ...inject,
     ColumnRange,
@@ -150,6 +159,7 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     ArgSeparator,
     NumberLiteral,
     OffsetProcedureName,
+    BooleanLiteral,
     ArrayRowSeparator,
     ArrayColSeparator,
     WhiteSpace,
@@ -158,7 +168,8 @@ export const buildLexerConfig = (config: ParserConfig): LexerConfig => {
     functionMapping,
     decimalSeparator: config.decimalSeparator,
     maxColumns: config.maxColumns,
-    maxRows: config.maxRows
+    maxRows: config.maxRows,
+    compatibilityMode: config.compatibilityMode,
   }
 }
 

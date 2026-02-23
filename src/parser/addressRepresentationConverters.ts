@@ -184,7 +184,7 @@ export const simpleCellRangeToString = (sheetIndexMapping: SheetIndexMappingFn, 
  * @param columnStringRepresentation - column label (e.g., 'AAB')
  * @returns column index
  */
-function columnLabelToIndex(columnStringRepresentation: string): number {
+export function columnLabelToIndex(columnStringRepresentation: string): number {
   if (columnStringRepresentation.length === 1) {
     return columnStringRepresentation.toUpperCase().charCodeAt(0) - 65
   } else {

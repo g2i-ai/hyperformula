@@ -68,6 +68,7 @@ export class CrudOperations {
 
   private readonly maxRows: number
   private readonly maxColumns: number
+  private readonly compatibilityMode: 'default' | 'googleSheets'
 
   constructor(
     config: Config,
@@ -83,6 +84,7 @@ export class CrudOperations {
   ) {
     this.maxRows = config.maxRows
     this.maxColumns = config.maxColumns
+    this.compatibilityMode = config.compatibilityMode
   }
 
   private get sheetMapping(): SheetMapping {
@@ -631,7 +633,7 @@ export class CrudOperations {
   }
 
   private ensureNamedExpressionNameIsValid(expressionName: string, sheetId?: number) {
-    if (!this.namedExpressions.isNameValid(expressionName)) {
+    if (!this.namedExpressions.isNameValid(expressionName, this.compatibilityMode, this.maxColumns)) {
       throw new NamedExpressionNameIsInvalidError(expressionName)
     }
     if (!this.namedExpressions.isNameAvailable(expressionName, sheetId)) {
