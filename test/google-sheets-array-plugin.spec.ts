@@ -827,3 +827,115 @@ describe('LOGEST size prediction with literal FALSE stats argument', () => {
     hf.destroy()
   })
 })
+
+// ─── Regression function error propagation and coercion ──────────────────────
+
+describe('LINEST known_x error propagation', () => {
+  it('propagates CellError from known_x instead of silently using defaults', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A3:A5,NA())', null],
+      [null, null],
+      [3, null],
+      [5, null],
+      [7, null],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+})
+
+describe('LOGEST known_x error propagation', () => {
+  it('propagates CellError from known_x instead of silently using defaults', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A3:A5,NA())', null],
+      [null, null],
+      [2, null],
+      [4, null],
+      [8, null],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+})
+
+describe('LINEST numeric boolean coercion', () => {
+  it('treats numeric 1 as TRUE for stats argument (5-row result)', () => {
+    // stats=1 should produce the 5-row result, not 1-row
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A8:A10,B8:B10,1,1)', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [3, 1],
+      [5, 2],
+      [7, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)  // slope
+    // A3 should have r² when stats=1 (TRUE); if returnStats is wrongly false, A3 is null
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(1)  // r²
+    hf.destroy()
+  })
+
+  it('treats numeric 0 as FALSE for stats argument (1-row result)', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LINEST(A8:A10,B8:B10,1,0)', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [3, 1],
+      [5, 2],
+      [7, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)
+    expect(hf.isCellPartOfArray(adr('A2'))).toBe(false)
+    hf.destroy()
+  })
+})
+
+describe('LOGEST numeric boolean coercion', () => {
+  it('treats numeric 1 as TRUE for stats argument (5-row result)', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['=LOGEST(A8:A10,B8:B10,1,1)', null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [null, null],
+      [2, 1],
+      [4, 2],
+      [8, 3],
+    ], gsOptions)
+
+    expect(hf.getCellValue(adr('A1'))).toBeCloseTo(2)  // m
+    expect(hf.getCellValue(adr('A3'))).toBeCloseTo(1)  // r²
+    hf.destroy()
+  })
+})
+
+describe('GROWTH empty known_x argument handling', () => {
+  it('uses default x values when known_x is omitted (empty arg)', () => {
+    // =GROWTH(y,,new_x) — known_x skipped with ","
+    // D1:D3 = [2,4,8], F1:F3 = [1,2,3]
+    const hf = HyperFormula.buildFromArray([
+      ['=GROWTH(D1:D3,,F1:F3)', null, null, 2, null, 1],
+      [null, null, null, 4, null, 2],
+      [null, null, null, 8, null, 3],
+    ], gsOptions)
+
+    // y = 1 * 2^x, so growth at x=1,2,3 should be 2,4,8
+    // If empty arg causes error, A1 would be a CellError
+    expect(hf.getCellValue(adr('A1'))).not.toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+})

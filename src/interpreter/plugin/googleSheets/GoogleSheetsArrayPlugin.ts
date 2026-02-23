@@ -923,7 +923,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const n = knownY.length
 
     let knownX: number[]
-    if (ast.args.length > 1) {
+    if (ast.args.length > 1 && ast.args[1].type !== AstNodeType.EMPTY) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
       if (knownXVal instanceof CellError) return knownXVal
       const extracted = extractNumbers(knownXVal)
@@ -938,7 +938,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     let newX: number[]
     let newXHeight = knownYVal.height()
     let newXWidth = knownYVal.width()
-    if (ast.args.length > 2) {
+    if (ast.args.length > 2 && ast.args[2].type !== AstNodeType.EMPTY) {
       const newXVal = this.evaluateAsRange(ast.args[2], state)
       if (newXVal instanceof CellError) return newXVal
       const extracted = extractNumbers(newXVal)
@@ -955,7 +955,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const useConst = ast.args.length > 3
       ? (() => {
           const v = this.evaluateAst(ast.args[3], state)
-          return typeof v === 'boolean' ? v : true
+          return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
         })()
       : true
 
@@ -1002,7 +1002,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const n = knownY.length
 
     let knownX: number[]
-    if (ast.args.length > 1) {
+    if (ast.args.length > 1 && ast.args[1].type !== AstNodeType.EMPTY) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
       if (knownXVal instanceof CellError) return knownXVal
       const extracted = extractNumbers(knownXVal)
@@ -1017,7 +1017,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     let newX: number[]
     let newXHeight = knownYVal.height()
     let newXWidth = knownYVal.width()
-    if (ast.args.length > 2) {
+    if (ast.args.length > 2 && ast.args[2].type !== AstNodeType.EMPTY) {
       const newXVal = this.evaluateAsRange(ast.args[2], state)
       if (newXVal instanceof CellError) return newXVal
       const extracted = extractNumbers(newXVal)
@@ -1034,7 +1034,7 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const useConst = ast.args.length > 3
       ? (() => {
           const v = this.evaluateAst(ast.args[3], state)
-          return typeof v === 'boolean' ? v : true
+          return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true)
         })()
       : true
 
@@ -1079,27 +1079,24 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const n = knownY.length
 
     let knownX: number[]
-    if (ast.args.length > 1 && ast.args[1] !== undefined) {
+    if (ast.args.length > 1 && ast.args[1].type !== AstNodeType.EMPTY) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
-      if (!(knownXVal instanceof CellError)) {
-        const extracted = extractNumbers(knownXVal)
-        if (extracted === null || extracted.length !== n) {
-          return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
-        }
-        knownX = extracted
-      } else {
-        knownX = Array.from({length: n}, (_, i) => i + 1)
+      if (knownXVal instanceof CellError) return knownXVal
+      const extracted = extractNumbers(knownXVal)
+      if (extracted === null || extracted.length !== n) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
       }
+      knownX = extracted
     } else {
       knownX = Array.from({length: n}, (_, i) => i + 1)
     }
 
     const useConst = ast.args.length > 2
-      ? (() => { const v = this.evaluateAst(ast.args[2], state); return typeof v === 'boolean' ? v : true })()
+      ? (() => { const v = this.evaluateAst(ast.args[2], state); return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true) })()
       : true
 
     const returnStats = ast.args.length > 3
-      ? (() => { const v = this.evaluateAst(ast.args[3], state); return typeof v === 'boolean' ? v : false })()
+      ? (() => { const v = this.evaluateAst(ast.args[3], state); return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : false) })()
       : false
 
     const {slope, intercept} = linearRegression(knownX, knownY, useConst)
@@ -1172,27 +1169,24 @@ export class GoogleSheetsArrayPlugin extends FunctionPlugin implements FunctionP
     const n = knownY.length
 
     let knownX: number[]
-    if (ast.args.length > 1 && ast.args[1] !== undefined) {
+    if (ast.args.length > 1 && ast.args[1].type !== AstNodeType.EMPTY) {
       const knownXVal = this.evaluateAsRange(ast.args[1], state)
-      if (!(knownXVal instanceof CellError)) {
-        const extracted = extractNumbers(knownXVal)
-        if (extracted === null || extracted.length !== n) {
-          return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
-        }
-        knownX = extracted
-      } else {
-        knownX = Array.from({length: n}, (_, i) => i + 1)
+      if (knownXVal instanceof CellError) return knownXVal
+      const extracted = extractNumbers(knownXVal)
+      if (extracted === null || extracted.length !== n) {
+        return new CellError(ErrorType.VALUE, ErrorMessage.EqualLength)
       }
+      knownX = extracted
     } else {
       knownX = Array.from({length: n}, (_, i) => i + 1)
     }
 
     const useConst = ast.args.length > 2
-      ? (() => { const v = this.evaluateAst(ast.args[2], state); return typeof v === 'boolean' ? v : true })()
+      ? (() => { const v = this.evaluateAst(ast.args[2], state); return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : true) })()
       : true
 
     const returnStats = ast.args.length > 3
-      ? (() => { const v = this.evaluateAst(ast.args[3], state); return typeof v === 'boolean' ? v : false })()
+      ? (() => { const v = this.evaluateAst(ast.args[3], state); return typeof v === 'boolean' ? v : (typeof v === 'number' ? v !== 0 : false) })()
       : false
 
     const lnY = knownY.map(v => Math.log(v))
