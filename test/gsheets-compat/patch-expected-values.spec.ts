@@ -152,6 +152,18 @@ describe('parseGSheetsValue', () => {
     it('still parses plain "0" as 0', () => {
       expect(parseGSheetsValue('0')).toBe(0)
     })
+
+    it('still parses "0.5" as 0.5 (decimal, not leading-zero integer)', () => {
+      expect(parseGSheetsValue('0.5')).toBe(0.5)
+    })
+
+    it('still parses "0.0051" as 0.0051', () => {
+      expect(parseGSheetsValue('0.0051')).toBe(0.0051)
+    })
+
+    it('still parses "0.004677734981" as 0.004677734981', () => {
+      expect(parseGSheetsValue('0.004677734981')).toBeCloseTo(0.004677734981)
+    })
   })
 
   describe('plain string fallback', () => {

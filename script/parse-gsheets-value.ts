@@ -40,7 +40,10 @@ export function parseGSheetsValue(raw: string): string | number | boolean | null
   // Preserve leading-zero strings as strings: they represent base-conversion
   // output (e.g. DEC2BIN → "01100100", OCT2HEX → "0000001F"). Number("010011")
   // would strip the leading zeros and produce 10011, causing a mismatch.
-  if (trimmed.length > 1 && trimmed.startsWith("0")) return trimmed;
+  // Exclude decimal numbers like "0.5" by checking the second character is not ".".
+  if (trimmed.length > 1 && trimmed.startsWith("0") && trimmed[1] !== ".") {
+    return trimmed;
+  }
 
   // Try plain numeric
   const num = Number(trimmed);
