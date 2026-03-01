@@ -1,6 +1,6 @@
 /* start:skip-in-compilation */
-import HyperFormula from 'hyperformula';
-import frFR from 'hyperformula/es/i18n/languages/frFR';
+import HyperFormula from '@g2i-ai/hyperformula';
+import frFR from '@g2i-ai/hyperformula/es/i18n/languages/frFR';
 
 console.log(
   `%c Using HyperFormula ${HyperFormula.version}`,

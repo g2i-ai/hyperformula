@@ -1,34 +1,17 @@
 # Licensing
 
-To make HyperFormula a better fit for different types of projects, the source code is available under different licenses.
-
-## Available licenses
-
-HyperFormula is available under the following licenses:
-
-
-| Name                                                                                  | Type        |
-|:--------------------------------------------------------------------------------------|:------------|
-| [GPLv3 license](https://github.com/handsontable/hyperformula/blob/master/LICENSE.txt) | Open source |
-| Proprietary license                                                                   | Proprietary |
+This fork of HyperFormula is distributed under the [GNU General Public License v3.0](https://github.com/g2i-ai/hyperformula/blob/master/LICENSE.txt) (GPLv3).
 
 ## GPLv3 license
 
-In a non-commercial or open-source project, you can use [GNU General Public License v3.0](https://github.com/handsontable/hyperformula/blob/master/LICENSE.txt) (GPLv3).
-
-To learn how to use the GPLv3 license, see the [License key](license-key.md#gplv3-license) page.
+You can use this software in non-commercial and open-source projects under the GPLv3. See the [License key](license-key.md#gplv3-license) page for how to configure it.
 
 ## Proprietary license
 
-If your project requires a more permissive license than GPLv3, please contact us to purchase a proprietary license with flexible terms and conditions.
-
-Contact our Sales Team:
-
-* Through the [contact form](https://handsontable.com/get-a-quote) on the Handsontable website
-* By email at [sales@handsontable.com](mailto:sales@handsontable.com)
+The original HyperFormula project by Handsontable also offers a proprietary license for commercial use. For proprietary licensing inquiries, contact [Handsontable](https://handsontable.com/get-a-quote) directly.
 
 ## Entering a license key
 
-To use HyperFormula, you need to specify which license type you use, by entering a license key.
+To use HyperFormula, you need to specify your license type by entering a license key.
 
 To find out how to enter a license key, see the [License key](license-key.md) page.

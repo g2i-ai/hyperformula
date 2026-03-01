@@ -14,7 +14,7 @@ First, if you used NPM or Yarn to install the package, make sure you
 have properly imported HyperFormula as shown below:
 
 ```javascript
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 ```
 
 If you embed HyperFormula in the `<script>` tag using CDN, then it will

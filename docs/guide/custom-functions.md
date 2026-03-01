@@ -14,7 +14,7 @@ first name as a string argument and returns a personalized greeting.
 Import `FunctionPlugin`, and extend it with a new class. For example:
 
 ```js
-import { FunctionPlugin } from 'hyperformula';
+import { FunctionPlugin } from '@g2i-ai/hyperformula';
 
 // let's call the function plugin `MyCustomPlugin`
 export class MyCustomPlugin extends FunctionPlugin {}
@@ -40,7 +40,7 @@ In your function's object, you can specify:
 - Other [custom function options](#function-options).
 
 ```js
-import { FunctionPlugin, FunctionArgumentType } from 'hyperformula';
+import { FunctionPlugin, FunctionArgumentType } from '@g2i-ai/hyperformula';
 
 MyCustomPlugin.implementedFunctions = {
   // let's define the function's ID as `GREET`
@@ -163,7 +163,7 @@ The complete implementation of this custom function is also included in the
 [demo](#working-demo).
 
 ```js
-import { FunctionPlugin, FunctionArgumentType } from 'hyperformula';
+import { FunctionPlugin, FunctionArgumentType } from '@g2i-ai/hyperformula';
 
 export class MyCustomPlugin extends FunctionPlugin {
   greet(ast, state) {

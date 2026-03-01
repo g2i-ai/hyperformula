@@ -1,7 +1,7 @@
 {
   "name": "@g2i-ai/hyperformula",
   "description": "HyperFormula is a JavaScript engine for efficient processing of spreadsheet-like data and formulas",
-  "homepage": "https://hyperformula.handsontable.com/",
+  "homepage": "https://g2i-ai.github.io/hyperformula/",
   "repository": {
     "type": "git",
     "url": "https://github.com/g2i-ai/hyperformula.git"
@@ -51,9 +51,10 @@
   "module": "es/index.mjs",
   "main": "commonjs/index.js",
   "jsnext:main": "es/index.mjs",
-  "jsdelivr": "dist/hyperformula.min.js",
-  "unpkg": "dist/hyperformula.min.js",
   "typings": "./typings/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "docs:dev": "npm run typedoc:build-api && cross-env NODE_OPTIONS=--openssl-legacy-provider vuepress dev docs --silent --no-clear-screen --no-cache",
     "docs:build": "npm run bundle-all && npm run typedoc:build-api && cross-env NODE_OPTIONS=--openssl-legacy-provider vuepress build docs",

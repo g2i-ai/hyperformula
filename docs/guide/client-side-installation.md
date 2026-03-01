@@ -1,21 +1,31 @@
 # Client-side installation
 
-### Install with npm or Yarn
+## Configure .npmrc for GitHub Packages
+
+This package is published to GitHub Packages. Before installing, configure your
+`.npmrc` file (in your project root or home directory) with:
+
+```
+@g2i-ai:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+## Install with npm or Yarn
 
 You can install the latest version of HyperFormula with popular
 packaging managers. Navigate to your project folder and run the
 following command:
-  
+
 **npm:**
 
 ```bash
-$ npm install hyperformula
+$ npm install @g2i-ai/hyperformula
 ```
 
 **Yarn:**
 
 ```bash
-$ yarn add hyperformula
+$ yarn add @g2i-ai/hyperformula
 ```
 
 The package will be added to your `package.json` file and installed to
@@ -24,33 +34,28 @@ the `./node_modules` directory.
 Then you can import it into your file like this:
 
 ```javascript
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 
 // your code
 ```
 
 ## Use CDN
 
-Alternatively, you can load HyperFormula from
-[jsDelivr](https://www.jsdelivr.com/) and embed the URL directly in the
-`<script>` tag. This way you will make it accessible in the project as
-a `HyperFormula` global variable.
+::: warning
+CDN delivery (jsDelivr, unpkg) is **not available** for packages published to
+GitHub Packages. You must install the package via npm/Yarn as described above,
+or self-host the UMD bundle files from the `dist/` directory after building.
+:::
 
-Full build will include all the required dependencies:
+<!--
+The following CDN URLs were used with the original npm-published package and
+will NOT work with the @g2i-ai/hyperformula GitHub Packages release:
 
-```html
 <script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js"></script>
-```
-
-Or you may load just a minimal build and add the dependencies on your own:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/chevrotain@6/lib/chevrotain.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tiny-emitter@2/dist/tinyemitter.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.min.js"></script>
-```
+-->
 
-A useful option when you already use some of them and there is no need to duplicate the dependencies. You can read more about the dependencies of HyperFormula on a dedicated [Dependencies](/guide/dependencies.md) page.
+You can read more about the dependencies of HyperFormula on a dedicated [Dependencies](/guide/dependencies.md) page.
 
 ## Clone from GitHub
 
@@ -62,18 +67,18 @@ descriptions.
 ### Clone with HTTPS
 
 ```bash
-git clone https://github.com/handsontable/hyperformula.git
+git clone https://github.com/g2i-ai/hyperformula.git
 ```
 
 ### Clone with SSH
 
 ```bash
-git clone git@github.com:handsontable/hyperformula.git
+git clone git@github.com:g2i-ai/hyperformula.git
 ```
 
 ## Download from GitHub
 
 You can download all resources as a ZIP archive directly from the
-[GitHub repository](https://github.com/handsontable/hyperformula).
+[GitHub repository](https://github.com/g2i-ai/hyperformula).
 Then, you can use one of the above-mentioned methods to install the
 library.

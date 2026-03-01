@@ -30,16 +30,12 @@ are a good starting point.
 
 ## How to get started
 
-1. First, sign this
-[Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2)
-to allow us to use and publish your changes.
-2. Always make your changes on a separate branch. This will speed up
+1. Always make your changes on a separate branch. This will speed up
 the merging process.
-3. Always make the target of your pull request the `develop` branch,
-not `master`.
-4. For any change you make, add test specs to the `test` folder.
-5. Please lint the code. See the section about using linter.
-6. Add a comprehensive description of all the changes.
+2. Always make the target of your pull request the `master` branch.
+3. For any change you make, add test specs to the `test` folder.
+4. Please lint the code. See the section about using linter.
+5. Add a comprehensive description of all the changes.
 
 ## Code of conduct
 

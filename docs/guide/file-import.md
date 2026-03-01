@@ -18,11 +18,11 @@ To import XLSX files, use a third-party [XLSX parser](https://www.npmjs.com/sear
 
 This example uses [ExcelJS](https://www.npmjs.com/package/exceljs) to import XLSX files into HyperFormula.
 
-See full example on [GitHub](https://github.com/handsontable/hyperformula-demos/tree/3.1.x/read-excel-file).
+See full example on [GitHub](https://github.com/handsontable/hyperformula-demos/tree/3.1.x/read-excel-file) (upstream demo, uses the original `hyperformula` package).
 
 ```js
 const ExcelJS = require('exceljs');
-const { HyperFormula } = require('hyperformula');
+const { HyperFormula } = require('@g2i-ai/hyperformula');
 
 async function run(filename) {
   const xlsxWorkbook = await readXlsxWorkbookFromFile(filename);

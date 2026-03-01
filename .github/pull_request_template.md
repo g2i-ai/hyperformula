@@ -1,3 +1,6 @@
+<!-- PR_TEMPLATE_ID: DEFAULT -->
+<!-- DO NOT REMOVE: Template identifier for CI validation -->
+
 ### Context
 <!--- Why are your changes required? What problem do they solve? -->
 
@@ -20,11 +23,10 @@
 ### Checklist:
 <!--- Go through the points below, and put an `x` in each box that applies. -->
 <!--- If you're unsure about any of these, contact us. We're always glad to help! -->
-- [ ] I have reviewed the guidelines about [Contributing to HyperFormula](https://hyperformula.handsontable.com/guide/contributing.html) and I confirm that my code follows the code style of this project.
-- [ ] I have signed the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+- [ ] I have reviewed the guidelines about [Contributing to HyperFormula](https://g2i-ai.github.io/hyperformula/guide/contributing.html) and I confirm that my code follows the code style of this project.
 - [ ] My change is compliant with the [OpenDocument](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part4-formula/OpenDocument-v1.3-os-part4-formula.html) standard.
 - [ ] My change is compatible with Microsoft Excel.
 - [ ] My change is compatible with Google Sheets.
-- [ ] I described my changes in the [CHANGELOG.md](https://github.com/handsontable/hyperformula/blob/master/CHANGELOG.md) file.
+- [ ] I described my changes in the [CHANGELOG.md](https://github.com/g2i-ai/hyperformula/blob/master/CHANGELOG.md) file.
 - [ ] My changes require a documentation update.
 - [ ] My changes require a migration guide.

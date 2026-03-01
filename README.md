@@ -1,8 +1,6 @@
 <br>
 <p align="center">
-  <a href="https://hyperformula.handsontable.com/">
-    <img src="https://raw.githubusercontent.com/handsontable/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
-  </a>
+  <img src="https://raw.githubusercontent.com/handsontable/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
 </p>
 
 <p align="center">
@@ -10,18 +8,17 @@
 </p>
 
 <p align="center">
-  <a href="https://npmjs.com/package/hyperformula"><img src="https://img.shields.io/npm/dt/hyperformula.svg" alt="npm total downloads"></a>
-  <a href="https://npmjs.com/package/hyperformula"><img src="https://img.shields.io/npm/dm/hyperformula.svg" alt="npm monthly downloads"></a>
-  <a href="https://github.com/handsontable/hyperformula/graphs/contributors"><img src="https://img.shields.io/github/contributors/handsontable/hyperformula" alt="GitHub contributors"></a>
-  <a href="https://snyk.io/test/github/handsontable/hyperformula?targetFile=package.json"><img src="https://snyk.io/test/github/handsontable/hyperformula/badge.svg?targetFile=package.json" alt="Known Vulnerabilities"></a>
-  <br>
-  <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhyperformula?ref=badge_shield"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhyperformula.svg?type=shield" alt="FOSSA Status"></a>
-  <a href="https://github.com/handsontable/hyperformula/actions?query=workflow%3Abuild+branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/handsontable/hyperformula/build.yml?branch=master" alt="GitHub Workflow Status"></a>
-  <a href="https://codecov.io/gh/handsontable/hyperformula"><img src="https://codecov.io/gh/handsontable/hyperformula/branch/master/graph/badge.svg?token=5k9ZQv8azO" alt="codecov"></a>
+  <a href="https://github.com/g2i-ai/hyperformula/packages"><img src="https://img.shields.io/github/v/release/g2i-ai/hyperformula" alt="GitHub release"></a>
+  <a href="https://github.com/g2i-ai/hyperformula/actions?query=workflow%3Abuild+branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/g2i-ai/hyperformula/build.yml?branch=master" alt="GitHub Workflow Status"></a>
 </p>
 
 ---
 
+> **Note:** This is a fork of [HyperFormula](https://github.com/handsontable/hyperformula) published to GitHub Packages as `@g2i-ai/hyperformula`. To install from GitHub Packages, configure your `.npmrc`:
+> ```
+> @g2i-ai:registry=https://npm.pkg.github.com
+> //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+> ```
 
 HyperFormula is a headless spreadsheet built in TypeScript, serving as both a parser and evaluator of spreadsheet formulas. It can be integrated into your browser or utilized as a service with Node.js as your back-end technology.
 
@@ -39,49 +36,48 @@ HyperFormula doesn't assume any existing user interface, making it a general-pur
 
 ## Features
 
-- [Function syntax compatible with Microsoft Excel](https://hyperformula.handsontable.com/guide/compatibility-with-microsoft-excel.html) and [Google Sheets](https://hyperformula.handsontable.com/guide/compatibility-with-google-sheets.html)
+- [Function syntax compatible with Microsoft Excel](docs/guide/compatibility-with-microsoft-excel.md) and [Google Sheets](docs/guide/compatibility-with-google-sheets.md)
 - High-speed parsing and evaluation of spreadsheet formulas
-- [A library of ~400 built-in functions](https://hyperformula.handsontable.com/guide/built-in-functions.html)
-- [Support for custom functions](https://hyperformula.handsontable.com/guide/custom-functions.html)
-- [Support for Node.js](https://hyperformula.handsontable.com/guide/server-side-installation.html#install-with-npm-or-yarn)
-- [Support for undo/redo](https://hyperformula.handsontable.com/guide/undo-redo.html)
-- [Support for CRUD operations](https://hyperformula.handsontable.com/guide/basic-operations.html)
-- [Support for clipboard](https://hyperformula.handsontable.com/guide/clipboard-operations.html)
-- [Support for named expressions](https://hyperformula.handsontable.com/guide/named-expressions.html)
-- [Support for data sorting](https://hyperformula.handsontable.com/guide/sorting-data.html)
-- [Support for formula localization with 17 built-in languages](https://hyperformula.handsontable.com/guide/i18n-features.html)
+- [A library of ~400 built-in functions](docs/guide/built-in-functions.md)
+- [Support for custom functions](docs/guide/custom-functions.md)
+- [Support for Node.js](docs/guide/server-side-installation.md#install-with-npm-or-yarn)
+- [Support for undo/redo](docs/guide/undo-redo.md)
+- [Support for CRUD operations](docs/guide/basic-operations.md)
+- [Support for clipboard](docs/guide/clipboard-operations.md)
+- [Support for named expressions](docs/guide/named-expressions.md)
+- [Support for data sorting](docs/guide/sorting-data.md)
+- [Support for formula localization with 17 built-in languages](docs/guide/i18n-features.md)
 - Easy integration with any front-end or back-end application
-- GPLv3 or a [commercial license](https://handsontable.com/get-a-quote)
-- Maintained by the team that stands behind the [Handsontable](https://handsontable.com/) data grid
+- GPLv3 licensed (see [Licensing](docs/guide/licensing.md))
 
 ## Documentation
 
-- [Client-side installation](https://hyperformula.handsontable.com/guide/client-side-installation.html)
-- [Server-side installation](https://hyperformula.handsontable.com/guide/server-side-installation.html)
-- [Basic usage](https://hyperformula.handsontable.com/guide/basic-usage.html)
-- [Configuration options](https://hyperformula.handsontable.com/guide/configuration-options.html)
-- [List of built-in functions](https://hyperformula.handsontable.com/guide/built-in-functions.html)
-- [API Reference](https://hyperformula.handsontable.com/api/)
+- [Client-side installation](docs/guide/client-side-installation.md)
+- [Server-side installation](docs/guide/server-side-installation.md)
+- [Basic usage](docs/guide/basic-usage.md)
+- [Configuration options](docs/guide/configuration-options.md)
+- [List of built-in functions](docs/guide/built-in-functions.md)
+- [API Reference](https://g2i-ai.github.io/hyperformula/api/)
 
 ## Integrations
 
-- [Integration with React](https://hyperformula.handsontable.com/guide/integration-with-react.html#demo)
-- [Integration with Angular](https://hyperformula.handsontable.com/guide/integration-with-angular.html#demo)
-- [Integration with Vue](https://hyperformula.handsontable.com/guide/integration-with-vue.html#demo)
-- [Integration with Svelte](https://hyperformula.handsontable.com/guide/integration-with-svelte.html#demo)
+- [Integration with React](docs/guide/integration-with-react.md#demo)
+- [Integration with Angular](docs/guide/integration-with-angular.md#demo)
+- [Integration with Vue](docs/guide/integration-with-vue.md#demo)
+- [Integration with Svelte](docs/guide/integration-with-svelte.md#demo)
 
 ## Installation and usage
 
-Install the library from [npm](https://www.npmjs.com/package/hyperformula) like so:
+Install the library from [GitHub Packages](https://github.com/g2i-ai/hyperformula/packages) like so:
 
 ```bash
-npm install hyperformula
+npm install @g2i-ai/hyperformula
 ```
 
 Once installed, you can use it to develop applications tailored to your specific business needs. Here, we've used it to craft a form that calculates mortgage payments using the `PMT` formula.
 
 ```js
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 
 // Create a HyperFormula instance
 const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
@@ -102,14 +98,10 @@ hf.setCellContents({ sheet: sheetId, row: 0, col: 0 }, [['Monthly Payment', '=PM
 console.log(`${hf.getCellValue({ sheet: sheetId, row: 0, col: 0 })}: ${hf.getCellValue({ sheet: sheetId, row: 0, col: 1 })}`);
 ```
 
-[Run this code in StackBlitz](https://stackblitz.com/github/handsontable/hyperformula-demos/tree/3.1.x/mortgage-calculator)
-
 ## Contributing
 
-Contributions are welcome, but before you make them, please read the [Contributing Guide](https://hyperformula.handsontable.com/guide/contributing.html) and accept the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+Contributions are welcome. Please read the [Contributing Guide](docs/guide/contributing.md) before submitting a pull request.
 
 ## License
 
-HyperFormula is available under two different licenses: GPLv3 and proprietary. The proprietary license can be purchased by [contacting our team](https://handsontable.com/get-a-quote) at Handsontable.
-
-Copyright (c) Handsoncode
+This fork is available under the [GPLv3 license](LICENSE.txt). Originally developed by [Handsoncode](https://handsontable.com/).
