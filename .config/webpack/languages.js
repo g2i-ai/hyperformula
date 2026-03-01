@@ -68,9 +68,9 @@ module.exports.create = function create() {
     externals: {
       ['../..']: {
         root: 'HyperFormula',
-        commonjs2: 'hyperformula',
-        commonjs: 'hyperformula',
-        amd: 'hyperformula',
+        commonjs2: '@g2i-ai/hyperformula',
+        commonjs: '@g2i-ai/hyperformula',
+        amd: '@g2i-ai/hyperformula',
       },
     },
     module: {
