@@ -1,16 +1,16 @@
 {
-  "name": "hyperformula",
+  "name": "@g2i-ai/hyperformula",
   "description": "HyperFormula is a JavaScript engine for efficient processing of spreadsheet-like data and formulas",
   "homepage": "https://hyperformula.handsontable.com/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/handsontable/hyperformula.git"
+    "url": "https://github.com/g2i-ai/hyperformula.git"
   },
   "bugs": {
-    "url": "https://github.com/handsontable/hyperformula/issues"
+    "url": "https://github.com/g2i-ai/hyperformula/issues"
   },
-  "author": "Handsoncode <hello@handsontable.com>",
-  "version": "3.2.0",
+  "author": "g2i <engineering@g2i.co>",
+  "version": "4.0.0",
   "keywords": [
     "formula",
     "spreadsheet",
@@ -85,7 +85,7 @@
     "audit": "npm audit --omit=dev",
     "clean": "rimraf commonjs/ dist/ es/ languages/ lib/ typings/ test-jasmine/",
     "compile": "tsc",
-    "check:licenses": "license-checker --production --excludePackages=\"hyperformula@3.1.1\" --onlyAllow=\"MIT; Apache-2.0; BSD-3-Clause; BSD-2-Clause; ISC; BSD; Unlicense\"",
+    "check:licenses": "license-checker --production --excludePackages=\"@g2i-ai/hyperformula@4.0.0\" --onlyAllow=\"MIT; Apache-2.0; BSD-3-Clause; BSD-2-Clause; ISC; BSD; Unlicense\"",
     "tsnode": "ts-node --transpile-only -O {\\\"module\\\":\\\"commonjs\\\"}"
   },
   "dependencies": {
