@@ -13,58 +13,27 @@ module.exports = {
   description: 'HyperFormula is an open-source, high-performance calculation engine for spreadsheets and web applications.',
   globalUIComponents: [],
   head: [
-    // Import HF (required for the examples)
+    // NOTE: CDN delivery is NOT available for GitHub Packages (@g2i-ai/hyperformula).
+    // The following CDN URLs reference the original npm package and will not
+    // reflect updates from this fork. For local docs development, build the
+    // UMD bundle and serve it locally, or use the original CDN URLs as a fallback
+    // for the docs site only.
     [ 'script', { src: 'https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js' } ],
     [ 'script', { src: 'https://cdn.jsdelivr.net/npm/hyperformula/dist/languages/enUS.js' } ],
     [ 'script', { src: 'https://cdn.jsdelivr.net/npm/hyperformula/dist/languages/frFR.js' } ],
     // Import moment (required for the examples)
     [ 'script', { src: 'https://cdn.jsdelivr.net/npm/moment/moment.min.js' } ],
-    // Google Tag Manager, an extra element within the `ssr.html` file.
-    ['script', {}, `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-N59TZXR');
-    `],
-    // Google Console
-    ['meta', { name: 'google-site-verification', content: 'MZpSOa8SNvFLRRGwUQpYVZ78kIHQoPVdVbafHhJ_d4Q' }],
-    // Sentry monitoring
-    [
-      'script', {}, `
-        window.sentryOnLoad = function () {
-          Sentry.init({
-            integrations: [
-              // If you use a bundle with performance monitoring enabled, add the BrowserTracing integration
-              new Sentry.BrowserTracing(),
-              // If you use a bundle with session replay enabled, add the SessionReplay integration
-              new Sentry.Replay({
-                maskAllText: false,
-                blockAllMedia: false,
-              }),
-            ],
-          });
-        };
-    `],
-    [
-      'script',
-      {
-        id: 'Sentry.io',
-        src: 'https://js.sentry-cdn.com/50617701901516ce348cb7b252564a60.min.js',
-        crossorigin: 'anonymous',
-      },
-    ],
     // Favicon
-    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/favicon/apple-touch-icon.png' }],
-    ['link', { rel: 'icon', sizes: '32x32', type: 'image/png', href: '/favicon/favicon-32x32.png' }],
-    ['link', { rel: 'icon', sizes: '16x16', type: 'image/png', href: '/favicon/favicon-16x16.png' }],
-    ['link', { rel: 'manifest', href: '/favicon/site.webmanifest' }],
-    ['link', { rel: 'mask-icon', color: '#ffffff', href: '/favicon/safari-pinned-tab.svg' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/hyperformula/favicon/apple-touch-icon.png' }],
+    ['link', { rel: 'icon', sizes: '32x32', type: 'image/png', href: '/hyperformula/favicon/favicon-32x32.png' }],
+    ['link', { rel: 'icon', sizes: '16x16', type: 'image/png', href: '/hyperformula/favicon/favicon-16x16.png' }],
+    ['link', { rel: 'manifest', href: '/hyperformula/favicon/site.webmanifest' }],
+    ['link', { rel: 'mask-icon', color: '#ffffff', href: '/hyperformula/favicon/safari-pinned-tab.svg' }],
   ],
-  base: '/',
+  base: '/hyperformula/',
   plugins: [
     ['sitemap', {
-      hostname: 'https://hyperformula.handsontable.com',
+      hostname: 'https://g2i-ai.github.io/hyperformula',
       exclude: ['/404.html'],
       changefreq: 'weekly'
     }],
@@ -125,8 +94,8 @@ module.exports = {
     logo: '/logo.png',
     nextLinks: true,
     prevLinks: true,
-    repo: 'handsontable/hyperformula',
-    docsRepo: 'handsontable/hyperformula',
+    repo: 'g2i-ai/hyperformula',
+    docsRepo: 'g2i-ai/hyperformula',
     docsDir: 'docs',
     docsBranch: 'master',
     editLinks: true,
@@ -260,6 +229,7 @@ module.exports = {
             ['/guide/key-concepts', 'Key concepts'],
             ['/guide/dependency-graph', 'Dependency graph'],
             ['/guide/building', 'Building & testing'],
+            ['/guide/releasing', 'Releasing'],
             ['/guide/custom-functions', 'Custom functions'],
             ['/guide/performance', 'Performance'],
             ['/guide/known-limitations', 'Known limitations'],

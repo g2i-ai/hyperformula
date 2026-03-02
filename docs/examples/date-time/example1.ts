@@ -1,5 +1,5 @@
 /* start:skip-in-compilation */
-import HyperFormula from 'hyperformula';
+import HyperFormula from '@g2i-ai/hyperformula';
 import moment from 'moment';
 
 console.log(

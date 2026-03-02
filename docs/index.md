@@ -5,9 +5,7 @@ description: HyperFormula® - An open-source headless spreadsheet for business w
 <br>
 <br>
 <p align="center">
-  <a href="https://hyperformula.handsontable.com/">
-    <img src="https://raw.githubusercontent.com/handsontable/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
-  </a>
+  <img src="https://raw.githubusercontent.com/g2i-ai/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
 </p>
 
 <p align="center">
@@ -15,15 +13,11 @@ description: HyperFormula® - An open-source headless spreadsheet for business w
 </p>
 
 <p align="center">
-  <a href="https://npmjs.com/package/hyperformula"><img src="https://img.shields.io/npm/dt/hyperformula.svg" alt="npm total downloads"></a>
-  <a href="https://npmjs.com/package/hyperformula"><img src="https://img.shields.io/npm/dm/hyperformula.svg" alt="npm monthly downloads"></a>
-  <a href="https://github.com/handsontable/hyperformula/graphs/contributors"><img src="https://img.shields.io/github/contributors/handsontable/hyperformula" alt="GitHub contributors"></a>
-  <a href="https://snyk.io/test/github/handsontable/hyperformula?targetFile=package.json"><img src="https://snyk.io/test/github/handsontable/hyperformula/badge.svg?targetFile=package.json" alt="Known Vulnerabilities"></a>
-  <br>
-  <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhyperformula?ref=badge_shield"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhyperformula.svg?type=shield" alt="FOSSA Status"></a>
-  <a href="https://github.com/handsontable/hyperformula/actions?query=workflow%3Abuild+branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/handsontable/hyperformula/build.yml?branch=master" alt="GitHub Workflow Status"></a>
-  <a href="https://codecov.io/gh/handsontable/hyperformula"><img src="https://codecov.io/gh/handsontable/hyperformula/branch/master/graph/badge.svg?token=5k9ZQv8azO" alt="codecov"></a>
+  <a href="https://github.com/g2i-ai/hyperformula/packages"><img src="https://img.shields.io/github/v/release/g2i-ai/hyperformula" alt="GitHub release"></a>
+  <a href="https://github.com/g2i-ai/hyperformula/actions?query=workflow%3Abuild+branch%3Amaster"><img src="https://img.shields.io/github/actions/workflow/status/g2i-ai/hyperformula/build.yml?branch=master" alt="GitHub Workflow Status"></a>
 </p>
+
+> **Note:** This is a fork of [HyperFormula](https://github.com/handsontable/hyperformula) by Handsontable, published to GitHub Packages as `@g2i-ai/hyperformula`.
 
 ---
 
@@ -55,8 +49,7 @@ HyperFormula doesn't assume any existing user interface, making it a general-pur
 - [Support for data sorting](guide/sorting-data.md)
 - [Support for formula localization with 17 built-in languages](guide/i18n-features.md)
 - Easy integration with any front-end or back-end application
-- GPLv3 or a [commercial license](https://handsontable.com/get-a-quote)
-- Maintained by the team that stands behind the [Handsontable](https://handsontable.com/) data grid
+- GPLv3 licensed (see [Licensing](guide/licensing.md))
 
 ## Documentation
 
@@ -76,16 +69,16 @@ HyperFormula doesn't assume any existing user interface, making it a general-pur
 
 ## Installation and usage
 
-Install the library from [npm](https://www.npmjs.com/package/hyperformula) like so:
+Install the library from [GitHub Packages](https://github.com/g2i-ai/hyperformula/packages) like so:
 
 ```bash
-npm install hyperformula
+npm install @g2i-ai/hyperformula
 ```
 
 Once installed, you can use it to develop applications tailored to your specific business needs. Here, we've used it to craft a form that calculates mortgage payments using the `PMT` formula.
 
 ```js
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 
 // Create a HyperFormula instance
 const hf = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
@@ -106,14 +99,10 @@ hf.setCellContents({ sheet: sheetId, row: 0, col: 0 }, [['Monthly Payment', '=PM
 console.log(`${hf.getCellValue({ sheet: sheetId, row: 0, col: 0 })}: ${hf.getCellValue({ sheet: sheetId, row: 0, col: 1 })}`);
 ```
 
-[Run this code in StackBlitz](https://stackblitz.com/github/handsontable/hyperformula-demos/tree/3.1.x/mortgage-calculator)
-
 ## Contributing
 
-Contributions are welcome, but before you make them, please read the [Contributing Guide](guide/contributing.md) and accept the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+Contributions are welcome. Please read the [Contributing Guide](guide/contributing.md) before submitting a pull request.
 
 ## License
 
-HyperFormula is available under two different licenses: GPLv3 and proprietary. The proprietary license can be purchased by [contacting our team](https://handsontable.com/get-a-quote) at Handsontable.
-
-Copyright (c) Handsoncode
+This fork is available under the [GPLv3 license](https://github.com/g2i-ai/hyperformula/blob/master/LICENSE.txt). Originally developed by [Handsoncode](https://handsontable.com/).

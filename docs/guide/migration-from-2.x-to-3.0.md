@@ -10,12 +10,12 @@ The previous import paths became deprecated. For most environments they still wo
 
 ### New import paths for ES and CommonJS module systems
 
-For ES and CommonJS modules, use the path `hyperformula/i18n/languages`, to import the language files. E.g.:
+For ES and CommonJS modules, use the path `@g2i-ai/hyperformula/i18n/languages`, to import the language files. E.g.:
 
 ```javascript
-import { frFR } from "hyperformula/i18n/languages"; // ESM
+import { frFR } from "@g2i-ai/hyperformula/i18n/languages"; // ESM
 
-const { frFR } = require('hyperformula/i18n/languages'); // CommonJS
+const { frFR } = require('@g2i-ai/hyperformula/i18n/languages'); // CommonJS
 ```
 If you use the UMD module system, you don't need to change anything.
 
@@ -42,7 +42,7 @@ In your `tsconfig.json`, set:
 1. In your code, use the legacy paths for importing language files. Unfortunately, Webpack 4 does not support `exports` property. E.g.:
 
 ```javascript
-import { frFR } from "hyperformula/es/i18n/languages";
+import { frFR } from "@g2i-ai/hyperformula/es/i18n/languages";
 ```
 
 2. In your `webpack.config.js`, add the following configuration to handle `.mjs` files properly:
@@ -73,7 +73,7 @@ module: {
 If you don't want to upgrade Parcel, you can keep using the legacy import paths for language files, but they will be removed in one of the upcoming releases. E.g.:
 
 ```javascript
-import { frFR } from "hyperformula/es/i18n/languages";
+import { frFR } from "@g2i-ai/hyperformula/es/i18n/languages";
 ```
 
 ### Other projects

@@ -18,11 +18,11 @@ it means that Vue's reactivity system tries to deeply observe the HyperFormula i
 
 ```javascript
 import { markRaw } from 'vue';
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 
 const hfInstance = markRaw(
   HyperFormula.buildEmpty({
-    licenseKey: 'internal-use-in-handsontable',
+    licenseKey: 'gpl-v3',
   })
 );
 ```

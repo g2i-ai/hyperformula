@@ -9,7 +9,7 @@ register the language like so:
 
 ```javascript
 // import the French language pack
-import frFR from 'hyperformula/i18n/languages/frFR';
+import frFR from '@g2i-ai/hyperformula/i18n/languages/frFR';
 
 // register the language
 HyperFormula.registerLanguage('frFR', frFR);
@@ -17,9 +17,9 @@ HyperFormula.registerLanguage('frFR', frFR);
 
 ::: tip
 To import the language packs, use the module-system-specific dedicated bundles at:
-* **ES**: `hyperformula/i18n/languages/`
-* **CommonJS**: `hyperformula/i18n/languages/`
-* **UMD**: `hyperformula/dist/languages/`
+* **ES**: `@g2i-ai/hyperformula/i18n/languages/`
+* **CommonJS**: `@g2i-ai/hyperformula/i18n/languages/`
+* **UMD**: `@g2i-ai/hyperformula/dist/languages/`
 
 For the UMD build, the languages are accessible through `HyperFormula.languages`, e.g., `HyperFormula.languages.frFR`.
 :::
@@ -101,7 +101,7 @@ const hf = HyperFormula.buildEmpty({
 ```
 
 ::: tip
-You can use an existing language pack as a template. Check the [language files in the repository](https://github.com/handsontable/hyperformula/tree/master/src/i18n/languages) to see complete examples with all available functions.
+You can use an existing language pack as a template. Check the [language files in the repository](https://github.com/g2i-ai/hyperformula/tree/master/src/i18n/languages) to see complete examples with all available functions.
 :::
 
 ## Localizing custom functions

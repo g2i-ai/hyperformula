@@ -20,7 +20,7 @@ The initial steps are the same as in the
 the configuration options:
 
 ```javascript
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula } from '@g2i-ai/hyperformula';
 
 const options = {
     licenseKey: 'gpl-v3'

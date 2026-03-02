@@ -1,6 +1,6 @@
 /* start:skip-in-compilation */
-import HyperFormula from 'hyperformula';
-import enUS from 'hyperformula/es/i18n/languages/enUS';
+import HyperFormula from '@g2i-ai/hyperformula';
+import enUS from '@g2i-ai/hyperformula/es/i18n/languages/enUS';
 import moment from 'moment';
 
 console.log(

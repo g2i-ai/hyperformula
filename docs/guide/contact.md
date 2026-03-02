@@ -1,24 +1,13 @@
 # Contact
 
-HyperFormula is a product of Handsoncode, the company that stands behind
-[Handsontable](https://handsontable.com/). We are here to answer all
-your questions regarding pricing, licensing, support, and security.
-We typically reply within a few hours during our working hours:
- 8:00 AM - 5:00 PM [CET](https://time.is/pl/CET).
+This is a fork of [HyperFormula](https://github.com/handsontable/hyperformula) maintained by [g2i](https://g2i.co).
 
-## Contact sales
+## Report an issue
 
-Write to us at [sales@handsontable.com](mailto:sales@handsontable.com)
-or submit your inquiry through the
-[contact form](https://handsontable.com/get-a-quote).
+If you found a bug or want to request a feature, please open an issue on GitHub.
 
-## Billing address
-
-* Handsoncode sp. z o.o.
-* Aleja Zwycięstwa 96/98
-* 81-451 Gdynia, Poland
-* VAT EU: PL5862294002
+[Create an issue](https://github.com/g2i-ai/hyperformula/issues/new/choose)
 
 ## Looking for technical support?
 
-Visit the page about [Support](support.md)
+Visit the page about [Support](support.md).

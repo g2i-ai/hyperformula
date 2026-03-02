@@ -1,5 +1,5 @@
 /* start:skip-in-compilation */
-import HyperFormula, { NothingToPasteError } from 'hyperformula';
+import HyperFormula, { NothingToPasteError } from '@g2i-ai/hyperformula';
 
 console.log(
   `%c Using HyperFormula ${HyperFormula.version}`,

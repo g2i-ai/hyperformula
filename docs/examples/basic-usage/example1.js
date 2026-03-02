@@ -1,5 +1,5 @@
 /* start:skip-in-compilation */
-import HyperFormula from 'hyperformula';
+import HyperFormula from '@g2i-ai/hyperformula';
 
 console.log(
   `%c Using HyperFormula ${HyperFormula.version}`,

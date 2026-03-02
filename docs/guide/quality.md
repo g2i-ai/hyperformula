@@ -38,7 +38,7 @@ HyperFormula's **entire source code is available on GitHub**, providing complete
 - **Contribute improvements** or report issues directly to the development team
 - **Build confidence** through code reviews and community oversight
 
-[View the source code on GitHub &#8594;](https://github.com/handsontable/hyperformula)
+[View the source code on GitHub &#8594;](https://github.com/g2i-ai/hyperformula)
 
 ## Real-World Validation
 
