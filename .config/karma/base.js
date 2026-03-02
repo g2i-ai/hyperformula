@@ -18,7 +18,6 @@ module.exports.create = function(config) {
     basePath: '',
 
     client: {
-      clearContext: false,
       spec: config.spec
     },
 
