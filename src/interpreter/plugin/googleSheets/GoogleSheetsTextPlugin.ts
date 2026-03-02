@@ -72,22 +72,37 @@ export class GoogleSheetsTextPlugin extends FunctionPlugin implements FunctionPl
    * Predicts the array size for SPLIT results.
    *
    * For string literal arguments, the maximum number of parts is text.length + 1
-   * (splitting every character). For non-literal arguments (cell references),
-   * falls back to maxColumns as the only safe upper bound — HF's resize()
-   * throws if actual > predicted, so under-prediction causes a runtime error.
-   * Over-prediction pads with EmptyValue and may cause #SPILL! errors if
-   * neighboring cells are occupied.
+   * (splitting every character). For non-literal arguments (cell references,
+   * expressions), attempts to evaluate the argument to determine the actual
+   * string length. Falls back to maxColumns when evaluation fails.
+   *
+   * Under-prediction causes missing result cells (the dependency graph only
+   * allocates space for the predicted width). Over-prediction pads with
+   * EmptyValue and may cause #SPILL! errors if neighboring cells are occupied.
    */
-  public splitArraySize(ast: ProcedureAst, _state: InterpreterState): ArraySize {
+  public splitArraySize(ast: ProcedureAst, state: InterpreterState): ArraySize {
     if (ast.args.length < 1) {
       return ArraySize.error()
     }
 
     const textArg = ast.args[0]
-    const width = (textArg.type === AstNodeType.STRING)
-      ? textArg.value.length + 1
-      : this.config.maxColumns
 
-    return new ArraySize(width, 1)
+    if (textArg.type === AstNodeType.STRING) {
+      return new ArraySize(textArg.value.length + 1, 1)
+    }
+
+    // For non-literal arguments, evaluate the AST to resolve the actual
+    // string value. This works when the referenced cell contains a static
+    // value (already available in the dependency graph).
+    try {
+      const value = this.evaluateAst(textArg, state)
+      if (typeof value === 'string') {
+        return new ArraySize(value.length + 1, 1)
+      }
+    } catch (_e) {
+      // Value not yet computed — fall through to maxColumns fallback.
+    }
+
+    return new ArraySize(this.config.maxColumns, 1)
   }
 }

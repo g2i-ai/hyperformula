@@ -1,0 +1,840 @@
+import {DetailedCellError, HyperFormula} from '../src'
+import {ErrorType} from '../src/Cell'
+import {adr} from './testUtils'
+
+describe('GoogleSheetsDatabasePlugin', () => {
+  const buildWithPlugin = (data: (string | number | null | undefined)[][]) =>
+    HyperFormula.buildFromArray(data, {
+      licenseKey: 'gpl-v3',
+      compatibilityMode: 'googleSheets',
+    })
+
+  /**
+   * Database layout:
+   *   A1:D1  — headers: Name, Department, Salary, Age
+   *   A2:D6  — data rows (5 employees)
+   *   A8:A9  — criteria block (header + value) — overwritten per test via spread
+   */
+  const database: (string | number)[][] = [
+    ['Name', 'Department', 'Salary', 'Age'],  // row 1
+    ['Alice', 'Engineering', 90000, 30],       // row 2
+    ['Bob', 'Engineering', 80000, 25],         // row 3
+    ['Carol', 'Sales', 85000, 35],             // row 4
+    ['Dave', 'Engineering', 95000, 28],        // row 5
+    ['Eve', 'Sales', 70000, 32],               // row 6
+  ]
+
+  const spacer: (string | number | null)[][] = [[]]  // row 7
+
+  // ---------------------------------------------------------------------------
+  // DSUM
+  // ---------------------------------------------------------------------------
+
+  it('DSUM sums matching values by header name', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],                        // row 8
+      ['Engineering'],                       // row 9
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],     // row 11
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    hf.destroy()
+  })
+
+  it('DSUM with numeric field index (1-based)', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, 3, A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    hf.destroy()
+  })
+
+  it('DSUM returns 0 when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Marketing'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
+
+  it('DSUM with comparison operator criterion (>80000)', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Salary'],
+      ['>80000'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Alice=90000, Carol=85000, Dave=95000 match >80000
+    expect(hf.getCellValue(adr('A11'))).toBe(270000)
+    hf.destroy()
+  })
+
+  it('DSUM with >= operator', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Salary'],
+      ['>=85000'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Alice=90000, Carol=85000, Dave=95000
+    expect(hf.getCellValue(adr('A11'))).toBe(270000)
+    hf.destroy()
+  })
+
+  it('DSUM with <> operator', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['<>Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Carol=85000, Eve=70000
+    expect(hf.getCellValue(adr('A11'))).toBe(155000)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DAVERAGE
+  // ---------------------------------------------------------------------------
+
+  it('DAVERAGE computes average of matching values', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DAVERAGE(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // (90000 + 80000 + 95000) / 3 = 88333.333...
+    expect(hf.getCellValue(adr('A11'))).toBeCloseTo(88333.333, 2)
+    hf.destroy()
+  })
+
+  it('DAVERAGE returns DIV_BY_ZERO error when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Marketing'],
+      spacer[0],
+      ['=DAVERAGE(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    expect((val as DetailedCellError).type).toBe(ErrorType.DIV_BY_ZERO)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DCOUNT
+  // ---------------------------------------------------------------------------
+
+  it('DCOUNT counts rows with numeric field values matching criteria', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(3)
+    hf.destroy()
+  })
+
+  it('DCOUNT counts 0 when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Marketing'],
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DCOUNTA
+  // ---------------------------------------------------------------------------
+
+  it('DCOUNTA counts non-empty values in field column for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Sales'],
+      spacer[0],
+      ['=DCOUNTA(A1:D6, "Name", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Carol and Eve are in Sales
+    expect(hf.getCellValue(adr('A11'))).toBe(2)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DGET
+  // ---------------------------------------------------------------------------
+
+  it('DGET returns single matching value', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DGET(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(90000)
+    hf.destroy()
+  })
+
+  it('DGET returns VALUE error when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Nobody'],
+      spacer[0],
+      ['=DGET(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    expect((val as DetailedCellError).type).toBe(ErrorType.VALUE)
+    hf.destroy()
+  })
+
+  it('DGET returns NUM error when multiple rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DGET(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    expect((val as DetailedCellError).type).toBe(ErrorType.NUM)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DMAX / DMIN
+  // ---------------------------------------------------------------------------
+
+  it('DMAX returns maximum numeric value for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DMAX(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(95000)
+    hf.destroy()
+  })
+
+  it('DMIN returns minimum numeric value for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DMIN(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(80000)
+    hf.destroy()
+  })
+
+  it('DMAX returns 0 when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Marketing'],
+      spacer[0],
+      ['=DMAX(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DPRODUCT
+  // ---------------------------------------------------------------------------
+
+  it('DPRODUCT returns product of matching values', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Sales'],
+      spacer[0],
+      ['=DPRODUCT(A1:D6, "Age", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Carol age=35, Eve age=32 → 35 * 32 = 1120
+    expect(hf.getCellValue(adr('A11'))).toBe(1120)
+    hf.destroy()
+  })
+
+  it('DPRODUCT returns 0 when no rows match', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Marketing'],
+      spacer[0],
+      ['=DPRODUCT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DSTDEV / DSTDEVP
+  // ---------------------------------------------------------------------------
+
+  it('DSTDEV returns sample standard deviation for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSTDEV(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Engineering salaries: 90000, 80000, 95000
+    // mean = 88333.33, sample stdev ≈ 7637.63
+    const val = hf.getCellValue(adr('A11')) as number
+    expect(val).toBeCloseTo(7637.626, 2)
+    hf.destroy()
+  })
+
+  it('DSTDEV returns DIV_BY_ZERO error with fewer than 2 matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DSTDEV(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    expect((val as DetailedCellError).type).toBe(ErrorType.DIV_BY_ZERO)
+    hf.destroy()
+  })
+
+  it('DSTDEVP returns population standard deviation for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSTDEVP(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Engineering salaries: 90000, 80000, 95000
+    // mean = 88333.33, population stdev ≈ 6236.09
+    const val = hf.getCellValue(adr('A11')) as number
+    expect(val).toBeCloseTo(6236.09, 1)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DVAR / DVARP
+  // ---------------------------------------------------------------------------
+
+  it('DVAR returns sample variance for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DVAR(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Engineering salaries: 90000, 80000, 95000 — sample variance
+    const val = hf.getCellValue(adr('A11')) as number
+    expect(val).toBeCloseTo(58333333.333, 0)
+    hf.destroy()
+  })
+
+  it('DVAR returns DIV_BY_ZERO error with fewer than 2 matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DVAR(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    expect((val as DetailedCellError).type).toBe(ErrorType.DIV_BY_ZERO)
+    hf.destroy()
+  })
+
+  it('DVARP returns population variance for matching rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DVARP(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11')) as number
+    expect(val).toBeCloseTo(38888888.888, 0)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // AND logic (multiple criteria columns in same criteria row)
+  // ---------------------------------------------------------------------------
+
+  it('multiple criteria columns in same row apply AND logic', () => {
+    // Criteria: Department=Engineering AND Age>28
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department', 'Age'],   // row 8 — two criteria headers
+      ['Engineering', '>28'],  // row 9 — AND: both must match
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:B9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Alice (Eng, 30) and Dave would not match because Dave is 28, not >28
+    // Alice=90000 only
+    expect(hf.getCellValue(adr('A11'))).toBe(90000)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // OR logic (multiple criteria rows)
+  // ---------------------------------------------------------------------------
+
+  it('multiple criteria rows apply OR logic', () => {
+    // Criteria: Department=Engineering OR Department=Sales
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],     // row 8 — one criteria header
+      ['Engineering'],    // row 9 — first criteria row
+      ['Sales'],          // row 10 — second criteria row (OR)
+      ['=DCOUNT(A1:D6, "Salary", A8:A10)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // All 5 employees are in Engineering or Sales
+    expect(hf.getCellValue(adr('A11'))).toBe(5)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Wildcard matching
+  // ---------------------------------------------------------------------------
+
+  it('wildcard * matches any sequence of characters in criteria', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['A*'],            // matches names starting with A
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Alice starts with A
+    expect(hf.getCellValue(adr('A11'))).toBe(1)
+    hf.destroy()
+  })
+
+  it('wildcard ? matches any single character in criteria', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['?ob'],           // matches "Bob"
+      spacer[0],
+      ['=DGET(A1:D6, "Name", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe('Bob')
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Edge cases
+  // ---------------------------------------------------------------------------
+
+  it('field referenced by column number 1 works', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DGET(A1:D6, 1, A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe('Alice')
+    hf.destroy()
+  })
+
+  it('field index out of bounds returns VALUE error', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DSUM(A1:D6, 99, A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('unknown field name returns VALUE error', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Name'],
+      ['Alice'],
+      spacer[0],
+      ['=DSUM(A1:D6, "NoSuchColumn", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    const val = hf.getCellValue(adr('A11'))
+    expect(val).toBeInstanceOf(DetailedCellError)
+    hf.destroy()
+  })
+
+  it('empty criteria value matches all rows', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      [''],              // empty criterion = match all
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(5)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Numeric criteria cell values (Comment 1: plain numbers must match)
+  // ---------------------------------------------------------------------------
+
+  it('plain numeric value in criteria cell matches numeric column values', () => {
+    // The criteria cell contains the number 25 (not the string "25")
+    // This must match Bob whose Age is 25
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [25],             // numeric criterion (no operator prefix)
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Bob has Age=25
+    expect(hf.getCellValue(adr('A11'))).toBe(1)
+    hf.destroy()
+  })
+
+  it('DSUM with plain numeric criterion in criteria cell', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [30],             // numeric criterion (no operator prefix)
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Only Alice has Age=30; Salary=90000
+    expect(hf.getCellValue(adr('A11'))).toBe(90000)
+    hf.destroy()
+  })
+
+  it('DGET with plain numeric criterion retrieves correct value', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [25],             // numeric — matches Bob
+      spacer[0],
+      ['=DGET(A1:D6, "Name", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe('Bob')
+    hf.destroy()
+  })
+
+  it('numeric criterion 0 returns no matches for nonzero column', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Age'],
+      [0],              // no employee has Age=0
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(0)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Reactivity: database functions must recalculate when source data changes
+  // ---------------------------------------------------------------------------
+
+  it('DSUM recalculates when a value in the database range changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    // Initial: Alice=90000, Bob=80000, Dave=95000 => 265000
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    // Change Alice's salary from 90000 to 100000
+    hf.setCellContents(adr('C2'), 100000)
+    // Now: 100000 + 80000 + 95000 = 275000
+    expect(hf.getCellValue(adr('A11'))).toBe(275000)
+    hf.destroy()
+  })
+
+  it('DSUM recalculates when a criteria value changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DSUM(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(265000)
+    // Change criteria from Engineering to Sales
+    hf.setCellContents(adr('A9'), 'Sales')
+    // Carol=85000, Eve=70000 => 155000
+    expect(hf.getCellValue(adr('A11'))).toBe(155000)
+    hf.destroy()
+  })
+
+  it('DCOUNT recalculates when database data changes', () => {
+    const data = [
+      ...database,
+      ...spacer,
+      ['Department'],
+      ['Engineering'],
+      spacer[0],
+      ['=DCOUNT(A1:D6, "Salary", A8:A9)'],
+    ]
+    const hf = buildWithPlugin(data)
+    expect(hf.getCellValue(adr('A11'))).toBe(3)
+    // Move Bob from Engineering to Sales
+    hf.setCellContents(adr('B3'), 'Sales')
+    expect(hf.getCellValue(adr('A11'))).toBe(2)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // parseCriterion: empty string after operator must not be parsed as zero
+  // ---------------------------------------------------------------------------
+
+  it('criterion "=" with no value after operator does not match numeric zero', () => {
+    // "=" with an empty value string must not be coerced to 0 and match zeros
+    const data = [
+      ['Value'],          // header
+      [0],                // row 2: numeric zero
+      [42],               // row 3: non-zero number
+      spacer[0],
+      ['Value'],          // criteria header (row 5)
+      ['='],              // criteria: "=" with no value after operator (row 6)
+      ['=DCOUNT(A1:A3, "Value", A5:A6)'],  // row 7
+    ]
+    const hf = buildWithPlugin(data)
+    // "=" must not be misread as "=0"; zero cell must NOT match
+    const result = hf.getCellValue(adr('A7'))
+    expect(result).not.toBe(1)  // Must not match only the zero cell
+    expect(result).not.toBe(2)  // Must not match both numeric cells as if criterion were =0 or blank-match-all
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // DMAX / DMIN: reduce-based pattern (safe for large result sets)
+  // ---------------------------------------------------------------------------
+
+  it('DMAX handles a large number of matching rows without stack overflow', () => {
+    // Build a 1000-row database all in the same department
+    const headers = [['Value', 'Dept']]
+    const rows: (number | string)[][] = Array.from({length: 1000}, (_, i) => [i + 1, 'X'])
+    const largeDb = [...headers, ...rows]
+    const criteriaRows: (string | null)[][] = [
+      [null],               // spacer
+      ['Dept'],             // criteria header
+      ['X'],                // criteria value
+      ['=DMAX(A1:B1001, "Value", A1003:A1004)'],
+    ]
+    const fullData = [...largeDb, ...criteriaRows]
+    const hf = buildWithPlugin(fullData)
+    // Row 1003 = criteria header "Dept", row 1004 = "X"
+    // Formula is in row 1005
+    const result = hf.getCellValue(adr('A1005'))
+    expect(result).toBe(1000)
+    hf.destroy()
+  })
+
+  it('DMIN handles a large number of matching rows without stack overflow', () => {
+    const headers = [['Value', 'Dept']]
+    const rows: (number | string)[][] = Array.from({length: 1000}, (_, i) => [i + 1, 'X'])
+    const largeDb = [...headers, ...rows]
+    const criteriaRows: (string | null)[][] = [
+      [null],
+      ['Dept'],
+      ['X'],
+      ['=DMIN(A1:B1001, "Value", A1003:A1004)'],
+    ]
+    const fullData = [...largeDb, ...criteriaRows]
+    const hf = buildWithPlugin(fullData)
+    const result = hf.getCellValue(adr('A1005'))
+    expect(result).toBe(1)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // Boolean criteria matching (Bug: booleans were coerced to "true"/"false" strings)
+  // ---------------------------------------------------------------------------
+
+  it('boolean TRUE criterion matches boolean TRUE cells in database', () => {
+    // Database with a boolean column (using formulas that evaluate to TRUE/FALSE)
+    const hf = HyperFormula.buildFromArray([
+      ['Active', 'Salary'],   // row 1 — headers
+      ['=TRUE()', 50000],     // row 2 — Active=TRUE
+      ['=FALSE()', 60000],    // row 3 — Active=FALSE
+      ['=TRUE()', 70000],     // row 4 — Active=TRUE
+      [null],                 // row 5 — spacer
+      ['Active'],             // row 6 — criteria header
+      ['=TRUE()'],            // row 7 — criteria: TRUE
+      ['=DSUM(A1:B4, "Salary", A6:A7)'], // row 8
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // TRUE rows: row 2 (50000) and row 4 (70000) = 120000
+    expect(hf.getCellValue(adr('A8'))).toBe(120000)
+    hf.destroy()
+  })
+
+  it('boolean FALSE criterion matches boolean FALSE cells in database', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['Active', 'Salary'],
+      ['=TRUE()', 50000],
+      ['=FALSE()', 60000],
+      ['=TRUE()', 70000],
+      [null],
+      ['Active'],
+      ['=FALSE()'],
+      ['=DCOUNT(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Only row 3 has Active=FALSE
+    expect(hf.getCellValue(adr('A8'))).toBe(1)
+    hf.destroy()
+  })
+
+  // ---------------------------------------------------------------------------
+  // CellError in database should not match not-equal criteria (Bug: CellError always matched <>)
+  // ---------------------------------------------------------------------------
+
+  it('cells with errors in criteria column are excluded from <> results', () => {
+    // Database where one data row has a #DIV/0! error in the criteria column
+    const hf = HyperFormula.buildFromArray([
+      ['Dept', 'Salary'],
+      ['Engineering', 50000],
+      ['=1/0', 60000],           // row 3 — error in Dept column
+      ['Sales', 70000],
+      [null],
+      ['Dept'],
+      ['<>Engineering'],          // criteria: not Engineering
+      ['=DSUM(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Row 3 has an error in Dept — should NOT be included.
+    // Only Sales (row 4, 70000) should match.
+    expect(hf.getCellValue(adr('A8'))).toBe(70000)
+    hf.destroy()
+  })
+
+  it('cells with errors in criteria column are excluded from = results', () => {
+    const hf = HyperFormula.buildFromArray([
+      ['Dept', 'Salary'],
+      ['Engineering', 50000],
+      ['=1/0', 60000],           // row 3 — error in Dept column
+      ['Sales', 70000],
+      [null],
+      ['Dept'],
+      ['Sales'],
+      ['=DCOUNT(A1:B4, "Salary", A6:A7)'],
+    ], {licenseKey: 'gpl-v3', compatibilityMode: 'googleSheets'})
+
+    // Error row should not match 'Sales'
+    expect(hf.getCellValue(adr('A8'))).toBe(1)
+    hf.destroy()
+  })
+})

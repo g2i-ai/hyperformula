@@ -19,7 +19,6 @@ import {Cache} from './Cache'
 import {FormulaLexer, FormulaParser, ExtendedToken} from './FormulaParser'
 import {
   buildLexerConfig,
-  CellReference,
   ColumnRange,
   LexerConfig,
   ProcedureName,
@@ -231,7 +230,7 @@ export class ParserWithCaching {
     let idx = 0
     while (idx < tokens.length) {
       const token = tokens[idx]
-      if (tokenMatcher(token, CellReference)) {
+      if (tokenMatcher(token, this.lexerConfig.CellReference)) {
         const cellAddress = cellAddressFromString(token.image, baseAddress, this.resolveSheetReference)
         if (cellAddress === undefined) {
           hash = hash.concat(token.image)
