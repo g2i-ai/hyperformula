@@ -8,6 +8,6 @@
   },
   "extends": "./tsconfig",
   "include": ["src", "test"],
-  /* Exclude files that are specific for jest setup */
-  "exclude": ["test/_setupFiles/jest"]
+  /* Exclude files that are Jest-only (not run under karma) */
+  "exclude": ["test/_setupFiles/jest", "test/gsheets-compat"]
 }

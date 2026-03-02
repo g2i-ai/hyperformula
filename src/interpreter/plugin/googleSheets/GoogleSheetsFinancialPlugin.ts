@@ -369,7 +369,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const pcd = this.prevCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const pcd = this.prevCouponDate(settlement, maturity, frequency )
         return this.daysBetween(this.dateTimeHelper.dateToNumber(pcd), settlement, basis)
       }
     )
@@ -387,12 +387,12 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const pcd = this.prevCouponDate(settlement, maturity, frequency as CouponFrequency)
-        const ncd = this.nextCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const pcd = this.prevCouponDate(settlement, maturity, frequency )
+        const ncd = this.nextCouponDate(settlement, maturity, frequency )
         if (basis === Basis.ACTUAL_ACTUAL) {
           return this.dateTimeHelper.dateToNumber(ncd) - this.dateTimeHelper.dateToNumber(pcd)
         }
-        return daysInCouponPeriod(frequency as CouponFrequency, basis)
+        return daysInCouponPeriod(frequency, basis)
       }
     )
   }
@@ -411,14 +411,14 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const pcd = this.prevCouponDate(settlement, maturity, frequency as CouponFrequency)
-        const ncd = this.nextCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const pcd = this.prevCouponDate(settlement, maturity, frequency )
+        const ncd = this.nextCouponDate(settlement, maturity, frequency )
 
         let coupDays: number
         if (basis === Basis.ACTUAL_ACTUAL) {
           coupDays = this.dateTimeHelper.dateToNumber(ncd) - this.dateTimeHelper.dateToNumber(pcd)
         } else {
-          coupDays = daysInCouponPeriod(frequency as CouponFrequency, basis)
+          coupDays = daysInCouponPeriod(frequency, basis)
         }
 
         const pcdSerial = this.dateTimeHelper.dateToNumber(pcd)
@@ -439,7 +439,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const ncd = this.nextCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const ncd = this.nextCouponDate(settlement, maturity, frequency )
         return this.dateTimeHelper.dateToNumber(ncd)
       }
     )
@@ -462,7 +462,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         // Using nextCouponDate correctly handles the day component: a settlement
         // one day before a coupon date yields one more coupon than a settlement
         // on that coupon date, which month-only arithmetic would miss.
-        const ncd = this.nextCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const ncd = this.nextCouponDate(settlement, maturity, frequency )
         const mat = this.dateTimeHelper.numberToSimpleDate(maturity)
         const monthsPerCoupon = 12 / frequency
         const monthsFromNcdToMat = (mat.year - ncd.year) * 12 + (mat.month - ncd.month)
@@ -482,7 +482,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const pcd = this.prevCouponDate(settlement, maturity, frequency as CouponFrequency)
+        const pcd = this.prevCouponDate(settlement, maturity, frequency )
         return this.dateTimeHelper.dateToNumber(pcd)
       }
     )
@@ -518,7 +518,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || coupon < 0 || yld < 0 || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        return durationCore(settlement, maturity, coupon, yld, frequency as CouponFrequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper))
+        return durationCore(settlement, maturity, coupon, yld, frequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper))
       }
     )
   }
@@ -554,7 +554,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || coupon < 0 || yld < 0 || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        const dur = durationCore(settlement, maturity, coupon, yld, frequency as CouponFrequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper))
+        const dur = durationCore(settlement, maturity, coupon, yld, frequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper))
         if (dur instanceof CellError) return dur
         return dur / (1 + yld / frequency)
       }
@@ -573,7 +573,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
         if (settlement >= maturity || rate < 0 || yld < 0 || redemption <= 0 || !isValidFrequency(frequency)) {
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
-        return priceCore(settlement, maturity, rate, yld, redemption, frequency as CouponFrequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.nextCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper), this.daysBetween.bind(this))
+        return priceCore(settlement, maturity, rate, yld, redemption, frequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.nextCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper), this.daysBetween.bind(this))
       }
     )
   }
@@ -708,7 +708,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
           return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
         }
         const priceAtYield = (yld: number) =>
-          priceCore(settlement, maturity, rate, yld, redemption, frequency as CouponFrequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.nextCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper), this.daysBetween.bind(this))
+          priceCore(settlement, maturity, rate, yld, redemption, frequency, basis, this.yearFraction.bind(this), this.prevCouponDate.bind(this), this.nextCouponDate.bind(this), this.dateTimeHelper.dateToNumber.bind(this.dateTimeHelper), this.daysBetween.bind(this))
 
         const f = (yld: number) => {
           const p = priceAtYield(yld)
@@ -792,7 +792,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
     switch (basis) {
       case Basis.US_30_360: {
         const [s, e] = this.dateTimeHelper.toBasisUS({...start}, {...end})
-        return days30_360(s, e) / 360
+        return days30By360(s, e) / 360
       }
       case Basis.ACTUAL_ACTUAL: {
         const yearLen = this.dateTimeHelper.yearLengthForBasis(start, end)
@@ -805,7 +805,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
       case Basis.EUROPEAN_30_360: {
         const s = toBasisEU({...start})
         const e = toBasisEU({...end})
-        return days30_360(s, e) / 360
+        return days30By360(s, e) / 360
       }
       default:
         return new CellError(ErrorType.NUM, ErrorMessage.ValueSmall)
@@ -822,12 +822,12 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
       const start = this.dateTimeHelper.numberToSimpleDate(Math.floor(startSerial))
       const end = this.dateTimeHelper.numberToSimpleDate(Math.floor(endSerial))
       const [s, e] = this.dateTimeHelper.toBasisUS({...start}, {...end})
-      return days30_360(s, e)
+      return days30By360(s, e)
     }
     if (basis === Basis.EUROPEAN_30_360) {
       const start = this.dateTimeHelper.numberToSimpleDate(Math.floor(startSerial))
       const end = this.dateTimeHelper.numberToSimpleDate(Math.floor(endSerial))
-      return days30_360(toBasisEU({...start}), toBasisEU({...end}))
+      return days30By360(toBasisEU({...start}), toBasisEU({...end}))
     }
     return actualDays
   }
@@ -855,7 +855,7 @@ export class GoogleSheetsFinancialPlugin extends FunctionPlugin implements Funct
       candidate = offsetMonth(candidate, -monthsPerCoupon)
       candidate = {year: candidate.year, month: candidate.month, day: Math.min(candidate.day, maturity.day)}
     }
-    while (true) {
+    for (;;) {
       const next = offsetMonth(candidate, monthsPerCoupon)
       const nextFixed = {year: next.year, month: next.month, day: Math.min(maturity.day, daysInMonth(next.year, next.month))}
       if (this.dateTimeHelper.dateToNumber(nextFixed) > settlementSerial) break
@@ -908,7 +908,7 @@ function daysInMonth(year: number, month: number): number {
  * Computes the 30/360 day count between two already-adjusted dates.
  * Formula: (Y2-Y1)*360 + (M2-M1)*30 + (D2-D1)
  */
-function days30_360(start: SimpleDate, end: SimpleDate): number {
+function days30By360(start: SimpleDate, end: SimpleDate): number {
   return (end.year - start.year) * 360 + (end.month - start.month) * 30 + (end.day - start.day)
 }
 
@@ -1145,7 +1145,9 @@ function cumulativeVDB(
     const slnDep = remainingLife > 0 ? (bookValue - salvage) / remainingLife : 0
     const ddbDep = bookValue * rate
     const actualDep = (!noSwitch && slnDep > ddbDep && !switchedToSLN)
-      ? (() => { switchedToSLN = true; return slnDep })()
+      ? (() => {
+ switchedToSLN = true; return slnDep 
+})()
       : (switchedToSLN ? slnDep : ddbDep)
     const dep = Math.min(actualDep, Math.max(bookValue - salvage, 0))
     cumDep += dep
