@@ -21,4 +21,5 @@ node_modules/
 *.iml
 dev*.html
 .DS_Store
-.wt
+.wt/
+

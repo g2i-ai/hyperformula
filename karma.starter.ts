@@ -5,7 +5,7 @@ const specArg: string = __karma__.config.spec;
 
 // require all modules ending in ".spec.ts" from the
 // './test' directory and all subdirectories
-const testsContext = require.context('./test', true, /.spec.ts$/);
+const testsContext = require.context('./test', true, /^(?!.*gsheets-compat).+\.spec\.ts$/);
 let files = testsContext.keys();
 
 if (specArg) {
