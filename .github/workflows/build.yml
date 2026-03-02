@@ -10,7 +10,7 @@ on:
       - synchronize # the head branch is updated from the base branch, new commits are pushed to the head branch, or the base branch is changed
   push:
     branches:
-      - 'master'
+      - 'main'
       - 'develop'
       - 'release/**'
 
