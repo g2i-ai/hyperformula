@@ -5,6 +5,10 @@ module.exports.create = function(config) {
 
   return {
     ...configBase,
+    client: {
+      ...configBase.client,
+      clearContext: false,
+    },
     browsers: ['Chrome'],
     reporters: ['kjhtml'],
     singleRun: false,
