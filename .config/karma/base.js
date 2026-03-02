@@ -2,6 +2,18 @@ const webpackConfigFactory = require('../../webpack.config');
 
 module.exports.create = function(config) {
   return {
+    // Explicitly require plugins for pnpm compatibility (pnpm's strict
+    // node_modules layout prevents karma's default 'karma-*' glob from
+    // finding plugins installed at the project root)
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-chrome-launcher'),
+      require('karma-firefox-launcher'),
+      require('karma-webpack'),
+      require('karma-sourcemap-loader'),
+      require('karma-jasmine-html-reporter'),
+    ],
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
