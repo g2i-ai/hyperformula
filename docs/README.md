@@ -2,7 +2,7 @@
 
 HyperFormula comes with a dedicated, regularly-updated documentation portal.
 
-View the documentation's latest production version at https://handsontable.com/docs/hyperformula.
+View the documentation's latest production version at https://g2i-ai.github.io/hyperformula/.
 
 ## About HyperFormula documentation
 

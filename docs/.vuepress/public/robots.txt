@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hyperformula.handsontable.com/sitemap.xml
+Sitemap: https://g2i-ai.github.io/hyperformula/sitemap.xml

@@ -24,11 +24,11 @@ module.exports = {
     // Import moment (required for the examples)
     [ 'script', { src: 'https://cdn.jsdelivr.net/npm/moment/moment.min.js' } ],
     // Favicon
-    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/favicon/apple-touch-icon.png' }],
-    ['link', { rel: 'icon', sizes: '32x32', type: 'image/png', href: '/favicon/favicon-32x32.png' }],
-    ['link', { rel: 'icon', sizes: '16x16', type: 'image/png', href: '/favicon/favicon-16x16.png' }],
-    ['link', { rel: 'manifest', href: '/favicon/site.webmanifest' }],
-    ['link', { rel: 'mask-icon', color: '#ffffff', href: '/favicon/safari-pinned-tab.svg' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/hyperformula/favicon/apple-touch-icon.png' }],
+    ['link', { rel: 'icon', sizes: '32x32', type: 'image/png', href: '/hyperformula/favicon/favicon-32x32.png' }],
+    ['link', { rel: 'icon', sizes: '16x16', type: 'image/png', href: '/hyperformula/favicon/favicon-16x16.png' }],
+    ['link', { rel: 'manifest', href: '/hyperformula/favicon/site.webmanifest' }],
+    ['link', { rel: 'mask-icon', color: '#ffffff', href: '/hyperformula/favicon/safari-pinned-tab.svg' }],
   ],
   base: '/hyperformula/',
   plugins: [
@@ -91,7 +91,7 @@ module.exports = {
   // seems not working properlt. I've uploaded `ssr.html` file to `.vuepress/template` dictionary.
   // ssrTemplate: 'index.ssr.html',
   themeConfig: {
-    logo: '/logo.png',
+    logo: '/hyperformula/logo.png',
     nextLinks: true,
     prevLinks: true,
     repo: 'g2i-ai/hyperformula',

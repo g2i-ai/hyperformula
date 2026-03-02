@@ -5,7 +5,7 @@ description: HyperFormula® - An open-source headless spreadsheet for business w
 <br>
 <br>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/handsontable/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
+  <img src="https://raw.githubusercontent.com/g2i-ai/hyperformula/master/github-hf-logo-blue.svg" width="350" height="71" alt="HyperFormula - A headless spreadsheet, a parser and evaluator of Excel formulas"/>
 </p>
 
 <p align="center">
