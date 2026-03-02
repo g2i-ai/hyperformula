@@ -91,7 +91,7 @@ module.exports = {
   // seems not working properlt. I've uploaded `ssr.html` file to `.vuepress/template` dictionary.
   // ssrTemplate: 'index.ssr.html',
   themeConfig: {
-    logo: '/hyperformula/logo.png',
+    logo: '/logo.png',
     nextLinks: true,
     prevLinks: true,
     repo: 'g2i-ai/hyperformula',
