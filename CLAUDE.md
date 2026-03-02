@@ -68,6 +68,16 @@ The build produces multiple output formats:
 - `dist/` - UMD bundles for browsers
 - `typings/` - TypeScript declaration files
 
+## Git Worktrees
+
+Always create worktrees inside `.wt/[branch-name]` relative to the project root:
+
+```bash
+git worktree add .wt/[branch-name] [ref]
+```
+
+The `.wt/` directory is gitignored.
+
 ## Contributing Guidelines
 
 - Create feature branches, never commit directly to master
